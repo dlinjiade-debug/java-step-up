@@ -265,6 +265,7 @@
 .tool-row strong { color: var(--text); font-size: 11px; font-weight: 550; }
 .tool-row small { color: var(--muted); font-size: 9px; }
 .offline-note { margin: 9px 0; padding: 11px; border: 1px solid var(--line); border-radius: 12px; background: #121919; color: var(--muted); font-size: 10px; line-height: 1.7; }
+.personal-tools__privacy { margin: -2px 0 12px; color: var(--muted); font-size: 11px; line-height: 1.65; }
 .me-footer { margin: 21px 0 0; color: var(--muted-soft); font-size: 9px; text-align: center; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; clip-path: inset(50%); }
 

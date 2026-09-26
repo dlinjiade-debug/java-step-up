@@ -20,6 +20,19 @@ npm run build
 npm run preview
 ```
 
+### 在 iPhone 上通过局域网访问
+
+先在电脑构建生产版本，再启动局域网预览：
+
+```bash
+npm run build
+npm run preview:lan
+```
+
+确保电脑和 iPhone 连接到同一个 Wi‑Fi（不要使用访客网络），然后在 iPhone Safari 打开终端输出中的 `Network` 地址。不要使用 `127.0.0.1`，它在手机上指向手机自身。如果 Windows 防火墙拦截连接，需要允许 Node.js 在专用网络接收连接。
+
+此方式在中国大陆本地网络中可直接访问，不依赖境外 CDN、字体或 API。局域网 IP 使用 HTTP，适合在线刷题和本机保存；Service Worker 离线缓存需要 HTTPS。要让任意大陆网络都能访问，需要配置境内主机、域名和 ICP 备案，单靠本地电脑无法提供公网访问。
+
 ## 校验与题库维护
 
 ```bash
@@ -41,9 +54,13 @@ npm run check:content -- --full
 
 ## 学习记录与离线使用
 
-答题进度、收藏和错题状态保存在当前浏览器的本地存储中，不需要账户或服务器。个人页可以导出 JSON 备份；导入会先展示内容，再与本机记录合并。不同设备之间需要手动传递备份文件。
+答题进度、收藏和错题状态保存在当前设备当前浏览器的本地存储中，不需要账户或服务器，也不会上传。个人页可以导出 JSON 备份；导入会先展示内容，再与本机记录合并。不同设备之间需要手动传递备份文件。
 
 PWA 首次加载需要网络。使用 Safari 打开部署后的网站，选择“分享 → 添加到主屏幕”；应用缓存题库后，可离线继续学习。发布新版本时，Service Worker 会在后台更新缓存。
+
+## 发布到 GitHub Pages
+
+项目已提供 Pages 构建命令与 GitHub Actions 工作流。推送到 main、master 或 feat/java-step-up 后会自动构建并发布；首次使用时，在 GitHub 仓库的 Settings / Pages 中把发布来源设为 GitHub Actions。操作说明、可见性和隐私范围见 [GitHub Pages 部署说明](./docs/github-pages.md)。
 
 ## 主要目录
 

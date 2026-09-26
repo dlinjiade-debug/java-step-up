@@ -8,6 +8,7 @@ import type { UserState } from "../types/progress.ts";
 import type { ImportPreview as ImportPreviewResult } from "../lib/progressStorage.ts";
 
 export function MePage({ state, onMergeImport }: { state: UserState; onMergeImport: (incoming: UserState) => void }) {
+  const canCacheOffline = window.isSecureContext && "serviceWorker" in navigator;
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<Extract<ImportPreviewResult, { valid: true }> | null>(null);
   const [fileError, setFileError] = useState("");
@@ -57,12 +58,13 @@ export function MePage({ state, onMergeImport }: { state: UserState; onMergeImpo
         })}
       </section>
       <section className="personal-tools"><div className="section-heading section-heading--compact"><div><span className="eyebrow">PERSONAL TOOLS</span><h2>个人工具</h2></div></div>
+        <p className="personal-tools__privacy">学习记录只保存在当前设备的浏览器中，不会上传。换设备时，可通过 JSON 备份迁移。</p>
         <button className="tool-row" type="button" onClick={exportData}><span className="tool-row__icon"><AppIcon name="download" /></span><span><strong>导出学习进度</strong><small>保存一份 JSON 备份</small></span><AppIcon name="arrow" size={17} /></button>
         <button className="tool-row" type="button" onClick={() => fileRef.current?.click()}><span className="tool-row__icon"><AppIcon name="upload" /></span><span><strong>导入学习备份</strong><small>预览后安全合并</small></span><AppIcon name="arrow" size={17} /></button>
         <input ref={fileRef} className="visually-hidden" type="file" accept="application/json,.json" onChange={(event) => { void readImport(event.target.files?.[0]); }} />
         {fileError ? <p className="field-error" role="alert">{fileError}</p> : null}
-        <button className="tool-row" type="button" onClick={() => setOfflineHelp((value) => !value)}><span className="tool-row__icon"><AppIcon name="wifi" /></span><span><strong>离线使用说明</strong><small>题库会随应用一起缓存</small></span><AppIcon name={offlineHelp ? "close" : "arrow"} size={17} /></button>
-        {offlineHelp ? <p className="offline-note">首次打开时需要网络。页面加载完成后，可以将 Java 阶梯添加到 iPhone 主屏幕；之后已缓存题目和本机进度可离线使用。</p> : null}
+        <button className="tool-row" type="button" onClick={() => setOfflineHelp((value) => !value)}><span className="tool-row__icon"><AppIcon name="wifi" /></span><span><strong>离线使用说明</strong><small>{canCacheOffline ? "题库会随应用一起缓存" : "当前局域网地址需联网使用"}</small></span><AppIcon name={offlineHelp ? "close" : "arrow"} size={17} /></button>
+        {offlineHelp ? <p className="offline-note">{canCacheOffline ? "首次打开时需要网络。页面加载完成后，可以将 Java 阶梯添加到 iPhone 主屏幕；之后已缓存题目和本机进度可离线使用。" : "当前通过局域网 HTTP 地址打开，可在线练习并在本机保存进度；离线缓存需要使用 HTTPS 地址。"}</p> : null}
       </section>
       <p className="me-footer">Java 21 · 五个阶段 · 按自己的节奏学习</p>
       {preview ? <ImportPreview preview={preview} onCancel={() => setPreview(null)} onConfirm={confirmImport} /> : null}

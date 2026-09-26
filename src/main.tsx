@@ -5,7 +5,9 @@ import App from "./App.tsx";
 import "./styles/tokens.css";
 import "./styles/app.css";
 
-registerSW({ immediate: true });
+if (window.isSecureContext && "serviceWorker" in navigator) {
+  registerSW({ immediate: true });
+}
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

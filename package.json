@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build",
+    "build:pages": "tsc --noEmit && vite build --base=./",
     "preview": "vite preview --host 0.0.0.0",
+    "preview:lan": "vite preview --host 0.0.0.0 --port 4175 --strictPort",
     "test": "node --experimental-strip-types --test",
     "generate:bank": "node scripts/generate-full-bank.mjs",
     "check:content": "node scripts/validate-content.mjs",
