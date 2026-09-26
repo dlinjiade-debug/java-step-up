@@ -14,13 +14,12 @@ const stages = [
 const additions = Object.fromEntries(stages.map((stage) => [stage.id, []]));
 
 function pack(stage, chapter, point, questions) {
-  const difficulty = stage === "beginner" ? "基础" : stage === "comprehensive" || stage === "internals" ? "综合" : "巩固";
   const selected = [...questions];
   if (stage === "advanced") {
     const finalTrace = selected.findLast((question) => question.type === "output");
     selected.splice(selected.indexOf(finalTrace), 1);
   }
-  for (const question of selected) additions[stage].push({ ...question, chapter, point, difficulty });
+  for (const question of selected) additions[stage].push({ ...question, chapter, point });
 }
 
 function choice(type, stem, options, reasoning, pitfall, takeaway) {
@@ -92,7 +91,7 @@ add("beginner", "变量与类型", "数值类型与转换", [
 ]);
 
 add("beginner", "运算符", "优先级与短路求值", [
-  choice("single", "表达式 `true || check()` 中，`check()` 会执行吗？", [
+  choice("single", "已定义返回 boolean 的 `check()` 方法。求值 `true || check()` 时会调用它吗？", [
     { text: "不会，|| 左侧为 true 时会短路。", correct: true, why: "逻辑或左侧已经为 true，右侧不影响结果，因此不再求值。" },
     { text: "会，|| 总会计算两侧。", correct: false, why: "总是计算两侧的是按位或 `|`，不是短路逻辑或 `||`。" },
     { text: "只有 check 返回 false 才会执行。", correct: false, why: "右侧未执行时，不存在返回值。" },
@@ -104,7 +103,7 @@ add("beginner", "运算符", "优先级与短路求值", [
     { text: "24", correct: false, why: "加法也参与表达式，不能只计算乘法部分。" },
     { text: "语法错误", correct: false, why: "该算术表达式语法有效。" },
   ], "乘法优先级高于加法：2 + (3 × 4) = 14。", "不要仅按书写顺序从左向右计算不同优先级的运算符。", "复杂表达式可以增加括号表达预期分组。"),
-  choice("multiple", "以下哪些表达式会发生短路？", [
+  choice("multiple", "已定义返回 boolean 的 `check()` 方法。以下哪些表达式会跳过对 `check()` 的调用？", [
     { text: "`false && check()`", correct: true, why: "&& 左侧为 false，结果已确定。" },
     { text: "`true || check()`", correct: true, why: "|| 左侧为 true，结果已确定。" },
     { text: "`false & check()`", correct: false, why: "boolean 的单个 `&` 会计算左右两侧。" },
@@ -118,7 +117,7 @@ add("beginner", "运算符", "优先级与短路求值", [
   ], "前两项分别是逻辑非 true，以及两个 true 条件的逻辑与。", "`!` 会反转括号中完整表达式的布尔结果。", "可把较复杂布尔式分成子条件逐一求值。"),
   output("最后输出多少？", "int x = 5;\nSystem.out.println(x++ + ++x);", "12", "后置自增先取 5 再变 6；前置自增变为 7 并取 7，和为 12。", "同一表达式中连续修改变量容易造成阅读错误。", "理解前后置语义后，实际代码优先拆成多行。"),
   output("程序输出什么？", "int x = 1;\nboolean result = x++ > 1 && ++x > 1;\nSystem.out.println(x + \":\" + result);", "2:false", "左侧比较使用旧值 1，随后 x 变为 2；条件为 false 使 && 短路，所以右侧不执行。", "短路会阻止右侧的自增副作用。", "先计算左操作数及其副作用，再决定是否计算右侧。"),
-  output("输出的布尔值是什么？", "int a = 2;\nSystem.out.println(a > 1 || ++a > 2);\nSystem.out.println(a);", "true\n2", "第一个比较为 true，|| 跳过右侧；a 保持 2。", "不要假定逻辑运算一定会执行全部操作数。", "用副作用追踪题检查短路分支。"),
+  output("两行输出依次是什么？", "int a = 2;\nSystem.out.println(a > 1 || ++a > 2);\nSystem.out.println(a);", "true\n2", "第一个比较为 true，|| 跳过右侧；a 保持 2。", "不要假定逻辑运算一定会执行全部操作数。", "用副作用追踪题检查短路分支。"),
   debug("下面的判断可能因空引用抛出异常，怎样安全地改写？", "if (name.length() > 0 && name != null) {\n    System.out.println(name);\n}", "把 `name != null` 移到 `name.length()` 前面：`name != null && name.length() > 0`。", "左侧会先执行，name 为空时访问 length 会抛 NullPointerException。", "`&&` 的求值顺序固定为从左到右。", "将空值守卫放在可能解引用的表达式之前。"),
   debug("这段布尔判断为什么没有短路保护？如何避免每次都调用 expensiveCheck？", "boolean valid = input != null & expensiveCheck(input);", "使用 `&&`：`boolean valid = input != null && expensiveCheck(input);`。", "单个 `&` 对 boolean 运算不会短路，右侧始终执行。", "`&` 有位运算和逻辑非短路用途，不能当作 `&&` 的拼写变体。", "控制流程需要短路时，使用 `&&` 或 `||`。"),
 ]);
@@ -134,13 +133,13 @@ function quiz(type, stem, texts, correctIndexes, reasoning, pitfall, takeaway) {
 
 add("beginner", "流程控制", "条件分支与循环边界", [
   quiz("single", "`do...while` 与 `while` 的关键区别是什么？", ["do...while 至少执行一次循环体。", "do...while 不能使用 boolean 条件。", "while 一定比 do...while 多执行一次。", "两者只能遍历数组。"], [0], "do...while 在循环体之后检查条件，所以第一次执行不受条件真假影响。", "while 与 do...while 的判断位置不同。", "需要先执行一次再决定是否重复时使用 do...while。"),
-  quiz("single", "没有 `break` 的传统 switch 中，匹配分支结束后通常会怎样？", ["继续执行后续分支语句，直到遇到 break 或 switch 结束。", "自动跳到 switch 末尾。", "重新判断下一个 case。", "编译器总会插入 break。"], [0], "传统冒号 case 在匹配后会发生贯穿执行（fall-through）。", "不要把传统 switch 和使用箭头标签的 switch 写法混为一谈。", "在传统 case 中明确写 break，或使用无贯穿的箭头标签。"),
+  quiz("single", "传统冒号式 switch 分支没有 break、return 或 throw 时，执行完匹配分支后会怎样？", ["继续执行后续分支语句，直到遇到跳出语句或 switch 结束。", "自动跳到 switch 末尾。", "重新判断下一个 case。", "编译器总会插入 break。"], [0], "传统冒号式 case 在匹配后会发生贯穿执行（fall-through）。", "不要把传统 switch 和使用箭头标签的 switch 写法混为一谈。", "在传统 case 中明确写 break，或使用无贯穿的箭头标签。"),
   quiz("multiple", "以下哪些写法可用于退出循环？", ["在循环体中执行 `break;`。", "循环条件变为 false 后自然结束。", "执行 `continue;` 立即退出整个循环。", "`return;` 总是只结束当前一轮循环。"], [0, 1], "break 直接结束当前循环；条件不成立时循环也会自然结束。", "continue 结束当前轮并进入下一轮，不会退出循环。", "区分 break、continue 与 return 各自控制的范围。"),
   quiz("multiple", "以下关于 `for` 循环的说法哪些正确？", ["初始化表达式通常执行一次。", "每轮循环体后会执行更新表达式，再检查条件。", "条件省略时等价于条件为 false。", "continue 会跳过本轮的更新表达式。"], [0, 1], "普通 for 循环先初始化，然后反复检查条件、执行循环体和更新表达式。", "continue 在 for 循环中仍会进入更新步骤。", "画出初始化、条件、循环体、更新的执行顺序。"),
   output("循环完成后输出什么？", "int i = 0;\nwhile (i < 3) {\n    i++;\n}\nSystem.out.println(i);", "3", "i 依次变为 1、2、3；当 i 等于 3 时条件为 false。", "条件是 `< 3`，所以值为 3 时不会再进入循环。", "退出循环时变量可能已经等于边界值。"),
   output("程序输出什么？", "int sum = 0;\nfor (int i = 1; i <= 4; i += 2) sum += i;\nSystem.out.println(sum);", "4", "i 依次为 1 和 3，sum 最终为 1 + 3 = 4。", "更新表达式每轮增加 2，不是增加 1。", "列出每轮循环变量，比只看边界更可靠。"),
   output("下面代码输出什么？", "int n = 5;\ndo { n -= 2; } while (n > 10);\nSystem.out.println(n);", "3", "do...while 先执行一次循环体，n 从 5 变为 3，之后条件为 false。", "即使首轮条件最终为 false，do...while 也已执行。", "判断循环类型时先找到条件检查发生的位置。"),
-  debug("这个循环在什么条件下会永久执行？请给出一种修复。", "int i = 0;\nwhile (i < 5) {\n    System.out.println(i);\n}", "在循环体中增加 `i++`，使 i 最终达到 5 并让条件为 false。", "循环体没有修改 i，条件一直为 true。", "循环变量必须沿着能够终止循环的方向更新。", "检查循环体是否会改变条件所依赖的状态。"),
+  debug("忽略外部中断和输出异常时，为什么这个循环不会自行结束？如何修复？", "int i = 0;\nwhile (i < 5) {\n    System.out.println(i);\n}", "在循环体中增加 `i++`，使 i 最终达到 5 并让条件为 false。", "循环体没有修改 i，条件一直为 true。", "循环变量必须沿着能够终止循环的方向更新。", "检查循环体是否会改变条件所依赖的状态。"),
   debug("如何让这个 switch 只打印一个匹配结果？", "switch (code) {\n    case 1: System.out.println(\"one\");\n    case 2: System.out.println(\"two\");\n    default: System.out.println(\"other\");\n}", "在各个传统 case 末尾添加 `break`，或将 case 改为箭头标签。", "传统 switch 匹配后会继续执行后续标签的语句。", "default 也会在发生贯穿时执行。", "为传统 case 写出清晰的结束方式，避免意外贯穿。"),
 ]);
 
@@ -153,11 +152,11 @@ add("beginner", "数组", "数组遍历与复制", [
   output("程序会输出什么？", "int[] a = {3, 1};\nint[] b = a;\nb[0] = 9;\nSystem.out.println(a[0]);", "9", "a 和 b 保存同一个数组对象的引用，修改 b[0] 也能通过 a 观察到。", "数组变量存储的是引用，不是数组元素的副本。", "需要独立数组时调用 clone 或复制工具。"),
   output("打印的行数是多少？", "String[] names = {\"A\", \"B\", \"C\"};\nint count = 0;\nfor (String name : names) count++;\nSystem.out.println(count);", "3", "增强 for 对三个数组元素各执行一次循环体。", "循环变量 name 并不是数组下标。", "用增强 for 遍历时，迭代次数等于元素数。"),
   debug("下面的复制结果仍会随原数组变化，怎样获得独立副本？", "int[] source = {2, 4, 6};\nint[] copy = source;", "使用 `int[] copy = source.clone();`，或使用 `Arrays.copyOf(source, source.length)`。", "数组赋值只复制引用，因此 source 与 copy 指向同一数组。", "新变量名并不意味着新数组对象。", "区分浅拷贝数组引用和新建数组。"),
-  debug("为什么这段循环会越界？正确的边界条件是什么？", "int[] values = {7, 8, 9};\nfor (int i = 0; i <= values.length; i++) {\n    System.out.println(values[i]);\n}", "把条件改成 `i < values.length`；有效下标为 0、1、2。", "`<=` 让 i 取到 3，访问 values[3] 时越界。", "空数组长度为 0，`i < length` 也能自然跳过循环。", "数组循环上界是 length（不包含），不是 length - 1（包含）。"),
+  debug("二维数组每一行长度不同，为什么遍历第二行时会越界？", "int[][] rows = {{1, 2}, {3}};\nfor (int row = 0; row < rows.length; row++) {\n    for (int col = 0; col < rows[0].length; col++) {\n        System.out.println(rows[row][col]);\n    }\n}", "内层循环应使用当前行的长度：`col < rows[row].length`。", "第二行仅有一个元素，使用第一行长度会访问 rows[1][1]。", "Java 的二维数组可以是不规则数组，每一行的长度可不同。", "遍历第 row 行时，用 `rows[row].length` 作为列边界。"),
 ]);
 
 add("beginner", "方法", "参数传递与返回值", [
-  quiz("single", "Java 调用 `change(n)`，方法内将 int 形参改为 9 后，调用方 n 会怎样？", ["保持原值，因为传入的是 n 的值的副本。", "自动变为 9，因为参数按引用传递。", "变为 0，因为方法局部变量会清零。", "只有 n 是 final 时才保持原值。"], [0], "基本类型参数按值传递，方法得到的是调用方数值的副本。", "Java 中对象参数同样是值传递，只是复制的值可能是对象引用。", "区分修改形参变量和修改引用所指向对象的状态。"),
+  quiz("single", "方法 `replace(int[] values) { values = new int[]{9}; }` 接收 `int[] a = {1}` 后，调用 `replace(a)`，`a[0]` 是多少？", ["1；重新赋值只改变方法内形参的指向。", "9；方法能改写调用方变量 a 的指向。", "0；数组元素会被重置。", "编译失败；数组不能作为方法参数。"], [0], "传入的是数组引用值的副本，给形参重新赋值不改变调用方变量 a。", "重新绑定形参与通过引用修改同一数组元素是两回事。", "追踪每个引用变量当前指向哪个数组对象。"),
   quiz("single", "方法声明返回类型为 `void`，以下哪种写法符合它的用途？", ["可以执行 `return;` 结束方法，但不返回值。", "必须返回 null。", "必须返回 0。", "不能出现 return 语句。"], [0], "void 表示方法不向调用者提供返回值；return 可用于提前结束。", "void 不是一个需要返回的值类型。", "用 return 结束控制流，不要附带表达式。"),
   quiz("multiple", "以下关于方法重载的说法哪些正确？", ["同名方法可以通过不同参数列表构成重载。", "只改变返回类型不能构成重载。", "形参名不同就一定构成重载。", "调用时编译器根据实参选择适用的方法。"], [0, 1, 3], "重载由方法名与参数列表区分，调用解析会考虑实参和适用转换。", "返回类型和形参名称不属于区分重载的充分条件。", "检查参数个数、类型和顺序，而不是只比较名字。"),
   quiz("multiple", "下列哪些描述符合 Java 参数传递？", ["基本类型实参的值复制到形参。", "对象引用作为一个值复制到形参。", "方法给形参重新赋一个对象不会让调用方引用改指向。", "把对象传入方法后，方法永远不能修改对象状态。"], [0, 1, 2], "形参收到实参值的副本；对象状态仍可通过复制的引用修改。", "引用值的复制和对象本身的复制不是一回事。", "先问方法是重绑引用，还是修改共享对象。"),
@@ -170,7 +169,7 @@ add("beginner", "方法", "参数传递与返回值", [
 
 add("beginner", "字符串", "字符串基础与作用域", [
   quiz("single", "Java `String` 对象的典型特性是什么？", ["不可变：拼接会得到新字符串。", "可变：每次调用 concat 都改写原对象。", "只能保存 ASCII 字符。", "不能用 `equals` 比较内容。"], [0], "String 不可变，字符串内容变化会产生另一个 String 值。", "引用变量可重新赋值，但这不等于原 String 对象被改写。", "大量循环拼接可考虑 StringBuilder。"),
-  quiz("single", "两个字符串内容比较应优先使用什么？", ["`a.equals(b)`。", "`a == b`。", "`a.compareTo(b) == 1`。", "比较两个对象的 hashCode。"], [0], "equals 用于比较字符串内容；== 判断是否为同一对象引用。", "字符串常量池可能让部分相同字面量引用相同对象，不能据此依赖 == 比较内容。", "比较前还应处理可能为 null 的接收者。"),
+  quiz("single", "已知非 null 的两个 String 变量 a、b，比较其文本内容是否相同应使用什么？", ["`a.equals(b)`。", "`a == b`。", "`a.compareTo(b) == 1`。", "比较两个对象的 hashCode。"], [0], "equals 用于比较字符串内容；== 判断是否为同一对象引用。", "字符串常量池可能让部分相同字面量引用相同对象，不能据此依赖 == 比较内容。", "若接收者可能为 null，可使用 Objects.equals(a, b)。"),
   quiz("multiple", "关于字符串拼接，哪些说法正确？", ["`StringBuilder.append` 会修改 builder 并返回 builder。", "`String` 拼接表达式会产生字符串结果。", "`String` 的 `concat` 会原地改变接收者。", "在循环里反复拼接大量字符串可能产生额外对象。"], [0, 1, 3], "StringBuilder 适合可变式追加；String 表达式得到新字符串结果。", "不可变性意味着 concat 不会改变原字符串。", "小规模拼接可直接使用 +；大量迭代拼接时考虑 builder。"),
   quiz("multiple", "以下关于局部变量与字段的说法哪些正确？", ["局部变量使用前必须先明确赋值。", "对象的 int 字段默认值为 0。", "未赋值的局部 int 变量会自动设为 0。", "实例字段在对象构造时有默认值。"], [0, 1, 3], "字段在初始化阶段会得到默认值；局部变量必须先被赋值才能读取。", "字段默认值规则不适用于未初始化的局部变量。", "看到变量时先判断它是字段还是局部变量。"),
   output("输出什么？", "String word = \"java\";\nword.toUpperCase();\nSystem.out.println(word);", "java", "toUpperCase 返回新字符串，但结果未保存，因此 word 仍引用原值。", "String 的方法不会就地修改内容。", "接收并保存不可变对象方法返回的新值。"),
@@ -188,7 +187,7 @@ add("foundation", "类与对象", "构造、字段与初始化", [
   output("构造后输出什么？", "class Box { int size = 3; Box() { size = size + 2; } }\nBox box = new Box();\nSystem.out.println(box.size);", "5", "字段先初始化为 3，构造器再将其加 2。", "字段初始化不会跳过构造器主体。", "按初始化顺序逐步更新字段值。"),
   output("两行输出是什么？", "class Counter { static int total; int value; Counter() { total++; value = total; } }\nCounter a = new Counter();\nCounter b = new Counter();\nSystem.out.println(a.value + \":\" + b.value);\nSystem.out.println(Counter.total);", "1:2\n2", "total 是所有对象共享的静态字段；两次构造分别令它变为 1 和 2。", "实例字段 value 则分别保存在不同对象中。", "区分 static 共享状态和实例状态。"),
   output("最终输出什么？", "class Label { String text = \"A\"; Label() { this(\"B\"); text += \"C\"; } Label(String value) { text = value; } }\nSystem.out.println(new Label().text);", "BC", "无参构造器先委托到带参构造器，将 text 设为 B；随后追加 C。", "this(...) 完成后，当前构造器还会继续执行后续语句。", "构造器链的调用顺序从被委托构造器返回后继续。"),
-  debug("为什么这段类在没有无参构造器时创建失败？如何让两种创建方式都工作？", "class User { User(String name) {} }\nUser user = new User();", "为 User 添加无参构造器，或在创建处传入 String 参数；若都需要则两个构造器都声明。", "显式声明 User(String) 后，编译器不再自动生成无参构造器。", "默认构造器仅在完全没有声明构造器时出现。", "新增构造器后检查旧调用点的兼容性。"),
+  debug("为什么 `new User()` 无法编译？如何同时支持无参和 String 参数两种创建方式？", "class User { User(String name) {} }\nUser user = new User();", "保留 `User(String name)`，并显式增加 `User()` 无参构造器。", "显式声明 User(String) 后，编译器不再自动生成无参构造器。", "默认构造器仅在完全没有声明构造器时出现。", "新增构造器后检查旧调用点的兼容性。"),
   debug("这里的字段与参数同名，怎样保证构造器能给字段赋值？", "class User {\n    String name;\n    User(String name) { name = name; }\n}", "写成 `this.name = name;`。", "未限定的 name 在构造器中指向参数，`name = name` 只给参数自身赋值。", "形参与字段同名时，作用域会遮蔽字段。", "使用 this 明确指向当前对象字段。"),
 ]);
 
@@ -205,27 +204,27 @@ add("foundation", "继承与多态", "重写与动态分派", [
 ]);
 
 add("foundation", "接口", "抽象契约与默认方法", [
-  quiz("single", "接口中的普通实例方法默认具有什么访问级别？", ["public。", "private。", "protected。", "仅对同包可见。"], [0], "接口的普通抽象实例方法是 public；实现时不能降低可见性。", "private 接口方法是 Java 9 以后用于接口内部复用的另一种语法。", "实现接口方法时保留 public。"),
+  quiz("single", "接口中未写访问修饰符的抽象实例方法，隐含的访问级别是什么？", ["public。", "private。", "protected。", "仅对同包可见。"], [0], "接口的抽象实例方法隐式为 public；实现时不能降低可见性。", "private 接口方法是用于接口内部复用的另一种语法。", "实现接口方法时保留 public。"),
   quiz("single", "一个类实现接口时，对接口抽象方法通常需要做什么？", ["提供满足契约的 public 实现，或将类声明为 abstract。", "把方法改成 private。", "只需在构造器中调用一次。", "接口方法会自动变成字段。"], [0], "非抽象类必须实现全部继承的抽象方法。", "接口方法的公开契约不能通过较低权限实现。", "编译错误通常会指出尚未实现的方法。"),
   quiz("multiple", "关于接口的说法哪些正确？", ["一个类可以实现多个接口。", "接口可以声明 default 实例方法。", "接口字段默认是 public static final。", "接口可以直接 `new Interface()` 创建实例。"], [0, 1, 2], "接口支持多实现契约；字段是常量，default 方法提供默认实例行为。", "接口本身不能直接实例化。", "需要对象时创建实现类或使用匿名实现。"),
   quiz("multiple", "类实现的两个接口提供了同签名且互不相关的 default 方法，哪些做法有效？", ["实现类重写该方法以消除冲突。", "实现类可用 `InterfaceA.super.method()` 调用其中一个默认实现。", "编译器会随机选一个接口。", "把其中一个接口改成父类即可自动决定。"], [0, 1], "类必须显式解决两个互不相关 default 实现之间的冲突。", "实现时可以分别委托到明确的接口默认实现。", "冲突不能依赖声明顺序或编译器猜测。"),
   output("输出结果是什么？", "interface Greeter { default String greet() { return \"hello\"; } }\nclass Person implements Greeter {}\nSystem.out.println(new Person().greet());", "hello", "Person 没有重写 greet，因此使用接口提供的 default 实现。", "default 是实例方法，不是静态方法。", "默认方法帮助接口演进，同时仍可由实现类覆盖。"),
   output("程序会打印什么？", "interface A { default String name() { return \"A\"; } }\nclass B implements A { @Override public String name() { return A.super.name() + \"B\"; } }\nSystem.out.println(new B().name());", "AB", "B 的实现显式调用 A 的默认方法并追加 B。", "`A.super` 只能在合适的实现上下文中调用直接相关接口默认方法。", "接口默认方法可被组合复用，但冲突需要显式处理。"),
-  output("这两个常量的值是什么？", "interface Limits { int MAX = 8; }\nSystem.out.println(Limits.MAX);", "8", "接口字段隐式为 public static final 常量，可通过接口名访问。", "接口字段不是每个实现对象各自保存的实例字段。", "共享常量应使用类名或接口名限定访问。"),
-  debug("为什么实现类无法编译？", "interface Store { void save(); }\nclass FileStore implements Store { void save() {} }", "将方法声明为 `public void save() {}`，或把 FileStore 声明为 abstract。", "接口方法是 public，实现方法不能降低可见性。", "包内默认可见不满足接口的公开契约。", "实现接口方法时检查 public 修饰符。"),
+  output("程序输出什么？", "interface Limits { int MAX = 8; }\nSystem.out.println(Limits.MAX);", "8", "接口字段隐式为 public static final 常量，可通过接口名访问。", "接口字段不是每个实现对象各自保存的实例字段。", "共享常量应使用类名或接口名限定访问。"),
+  debug("为什么实现类无法编译？", "interface Store { void save(); }\nclass FileStore implements Store { void save() {} }", "将实现方法声明为 `public void save() {}`；仅把 FileStore 改为 abstract 仍不能保留这个低可见性的同签名方法。", "接口方法是 public，实现方法不能降低可见性。", "包内默认可见不满足接口的公开契约。", "实现接口方法时检查 public 修饰符。"),
   debug("两个 default 方法冲突时如何明确选择实现？", "interface Left { default void run() {} }\ninterface Right { default void run() {} }\nclass Task implements Left, Right {}", "在 Task 中重写 `public void run()`，并在需要时调用 `Left.super.run()` 或 `Right.super.run()`。", "两个不相关接口都提供 run 默认实现，类没有唯一可继承实现。", "冲突由具体类解决，而不是根据 implements 顺序选择。", "多接口默认方法重名时，显式覆盖并表达选择。"),
 ]);
 
 add("foundation", "面向对象", "封装、static 与 final", [
   quiz("single", "`private` 实例字段最直接的设计目的是什么？", ["限制外部直接访问，并由类自身维护对象状态。", "自动让字段线程安全。", "阻止对象被垃圾回收。", "让字段在所有实例间共享。"], [0], "private 把直接访问限制在类内部，便于保护不变量。", "访问控制本身不提供同步，也不会改变字段是否静态。", "把验证规则放在负责状态的类中。"),
   quiz("single", "`static` 字段通常属于谁？", ["类本身，所有实例共享一份。", "每次方法调用独有一份。", "每个对象各自独有一份。", "只有子类对象拥有。"], [0], "静态字段与类关联，而非每个实例单独持有。", "static 不意味着值不可变；是否可变由字段类型和修饰符另定。", "共享可变 static 状态需要额外考虑并发与生命周期。"),
-  quiz("multiple", "哪些声明表示不能被重新赋值或重写？", ["局部变量 `final int n` 在赋值后不能再赋值。", "`final` 实例方法不能被子类重写。", "`final` 类不能被继承。", "final 引用保证所指对象的字段也不可变。"], [0, 1, 2], "final 可限制变量重新赋值、方法重写和类继承。", "final 引用限制引用本身重新指向，不自动冻结对象状态。", "分清引用不可变与引用目标不可变。"),
-  quiz("multiple", "关于静态上下文和实例成员，哪些说法正确？", ["static 方法没有隐式的当前对象 this。", "static 方法可以通过对象引用调用实例字段。", "实例方法可以直接访问同类 static 字段。", "static 字段的值在每个对象之间独立保存。"], [0, 2], "静态上下文没有当前实例；实例方法则可访问类成员和实例成员。", "访问实例字段必须有明确对象。", "编译器报非静态成员错误时，先确认是否缺少对象引用。"),
+  quiz("multiple", "关于 final 修饰符，哪些说法正确？", ["局部变量 `final int n` 在赋值后不能再赋值。", "`final` 实例方法不能被子类重写。", "`final` 类不能被继承。", "final 引用保证所指对象的字段也不可变。"], [0, 1, 2], "final 可限制变量重新赋值、方法重写和类继承。", "final 引用限制引用本身重新指向，不自动冻结对象状态。", "分清引用不可变与引用目标不可变。"),
+  quiz("multiple", "关于静态上下文和实例成员，哪些说法正确？", ["static 方法没有隐式的当前对象 this。", "static 方法可以通过明确的对象引用访问实例字段。", "实例方法可以直接访问同类 static 字段。", "static 字段的值在每个对象之间独立保存。"], [0, 1, 2], "静态上下文没有当前实例，但可通过明确的对象引用访问其实例成员；实例方法也可访问同类静态成员。", "在 static 方法中不能直接使用 this；访问实例字段要有对象引用。", "编译器报非静态成员错误时，先确认是否缺少对象引用。"),
   output("执行结果是什么？", "class Meter { static int created; Meter() { created++; } }\nnew Meter(); new Meter();\nSystem.out.println(Meter.created);", "2", "两次构造都递增同一个类级别字段。", "静态字段不会因创建新实例而重置。", "统计对象数量时，static 字段常用于共享计数。"),
   output("程序输出什么？", "final int[] values = {1, 2};\nvalues[0] = 7;\nSystem.out.println(values[0]);", "7", "final 限制 values 不能改为引用另一个数组，但数组元素仍可修改。", "final 引用不等于不可变对象。", "深度不可变需要不可变对象设计，而不只是 final 引用。"),
   output("下列代码打印什么？", "class Config { static final int PORT = 8080; }\nSystem.out.println(Config.PORT);", "8080", "静态 final 字段保存共享常量值，可通过类名访问。", "常量命名惯例使用大写字母和下划线。", "final 用于不应重新赋值的常量或引用。"),
   debug("为什么 static 方法中访问 this 会编译失败？", "class Session {\n    static void show() { System.out.println(this); }\n}", "删除 static，将 show 声明为实例方法；或去掉 this 并明确需要访问的静态成员。", "static 方法调用没有当前对象，因此不存在 this。", "不要只为了访问实例成员而把方法误标为 static。", "判断方法是否属于对象行为，再决定是否需要实例上下文。"),
-  debug("这个 final 数组为什么不能重新赋值但可以改元素？如何只暴露只读视图？", "final List<String> names = new ArrayList<>();\nnames.add(\"Ada\");", "final 仅禁止 names 重新指向其他 List；可用不可变副本或 `List.copyOf(names)` 暴露只读列表。", "集合引用仍指向可变对象，final 不阻止 add。", "调用方持有原始可变列表时，不可变视图和不可变副本也有区别。", "保护集合状态时同时控制引用和底层对象的可变性。"),
+  debug("为什么 final 列表引用不能重新赋值，却仍可向列表添加元素？如何提供不可修改的副本？", "final List<String> names = new ArrayList<>();\nnames.add(\"Ada\");", "final 只限制 names 重新指向其他 List；可使用 `List.copyOf(names)` 创建不可修改的副本。", "集合引用仍指向可变对象，final 不阻止 add。", "不可修改视图可能仍会反映原列表后续变化；副本与视图不同。", "保护集合状态时同时控制引用和底层对象的可变性。"),
 ]);
 
 add("foundation", "字符串", "相等性与不可变对象", [
@@ -243,12 +242,12 @@ add("foundation", "字符串", "相等性与不可变对象", [
 add("foundation", "异常", "异常传播与资源关闭", [
   quiz("single", "`finally` 块通常何时执行？", ["离开 try/catch 控制流时通常执行，包括发生异常的情况。", "只有 try 正常结束时执行。", "只有 catch 捕获异常后执行。", "只在 JVM 正常退出时执行。"], [0], "finally 常用于清理，在离开 try/catch 时运行。", "调用 System.exit 或进程突然终止等情况可能绕过 finally。", "需要可靠关闭资源时优先考虑 try-with-resources。"),
   quiz("single", "try-with-resources 要求资源类型通常满足什么条件？", ["实现 AutoCloseable。", "实现 Serializable。", "必须继承 Thread。", "必须是 static 字段。"], [0], "编译器会在适当时机调用资源的 close 方法，资源需实现 AutoCloseable。", "Closeable 是其子接口，常见 IO 类型也支持该机制。", "用 try-with-resources 表达明确的资源所有权边界。"),
-  quiz("multiple", "关于受检异常，哪些描述正确？", ["调用可能抛出受检异常的方法时需捕获或声明。", "RuntimeException 的子类通常属于非受检异常。", "Error 通常要求每个调用点都捕获。", "catch 子类异常后，再写父类异常 catch 会不可达。"], [0, 1, 3], "受检异常由编译器检查；非受检异常通常是 RuntimeException 或 Error 的子类。", "先捕获更具体类型，否则其后的父类 catch 可能不可达。", "只捕获能够处理或转换的异常，避免空 catch。"),
+  quiz("multiple", "关于受检异常及 catch 顺序，哪些描述正确？", ["调用可能抛出受检异常的方法时需捕获或声明。", "RuntimeException 的子类属于非受检异常。", "Error 通常要求每个调用点都捕获。", "先 catch 父类异常，再 catch 其子类异常会导致后者不可达。"], [0, 1, 3], "受检异常由编译器检查；RuntimeException 和 Error 及其子类属于非受检异常。", "应先捕获更具体的类型，否则其后的子类 catch 不可达。", "只捕获能够处理或转换的异常，避免空 catch。"),
   quiz("multiple", "关于 try-with-resources，哪些说法正确？", ["资源按声明的逆序关闭。", "即使 try 块抛异常，已创建资源也会尝试关闭。", "必须手动在 finally 中再次调用 close。", "多个资源可在资源头中依次声明。"], [0, 1, 3], "资源会自动关闭，关闭顺序与初始化顺序相反。", "通常不要重复手动 close，否则可能重复释放。", "声明资源后让语言结构承担正常清理责任。"),
   output("最后输出什么？", "try { System.out.print(\"T\"); } finally { System.out.print(\"F\"); }", "TF", "try 主体先打印 T，随后 finally 打印 F。", "finally 不是在 try 前执行。", "按实际控制流顺序追踪输出与清理。"),
   output("方法返回值是什么？", "static int value() { try { return 1; } finally { System.out.print(\"F\"); } }\nSystem.out.println(\"R\" + value());", "FR1", "调用 value 时先在 finally 打印 F，随后返回 1；外层打印 R1。", "finally 中若再执行 return 会覆盖先前返回值，通常应避免。", "finally 用于清理，不要在其中改变控制流结果。"),
   output("资源关闭前后会打印什么？", "class Tracked extends java.io.StringReader { boolean closed; Tracked() { super(\"x\"); } public void close() { closed = true; } }\nTracked in = new Tracked();\ntry (in) { System.out.println((char) in.read()); }\nSystem.out.println(in.closed);", "x\ntrue", "StringReader 读取 x；离开 try-with-resources 后自动调用覆盖的 close，将 closed 设为 true。", "try-with-resources 会在资源初始化成功后负责关闭。", "用可观察的 close 状态验证资源清理时序。"),
-  debug("为什么第二个 catch 不可达？怎样调整顺序？", "try { work(); } catch (Exception e) { recover(); } catch (IOException e) { retry(); }", "将 `catch (IOException e)` 放到 `catch (Exception e)` 前。", "IOException 是 Exception 的子类，前一个 catch 已能捕获它。", "catch 应从更具体的异常类型排到更一般的类型。", "阅读异常继承关系来判断 catch 的覆盖范围。"),
+  debug("为什么这个 multi-catch 无法编译？如何处理这两种异常？", "try { readFile(); } catch (java.io.IOException | java.io.FileNotFoundException e) {\n    recover(e);\n}", "FileNotFoundException 是 IOException 的子类；这里只写 `catch (IOException e)` 即可同时捕获两者。", "multi-catch 的异常备选类型不能具有子类型关系。", "不要在同一个 multi-catch 中重复列出已由父类型覆盖的异常。", "若需分别处理，可写更具体的 catch，再写一般的 catch。"),
   debug("怎样保证 reader 在读取成功或抛异常后都会关闭？", "var reader = new java.io.FileReader(path);\nint first = reader.read();", "将资源放入 `try (var reader = new java.io.FileReader(path)) { ... }`。", "当前代码没有关闭 reader，发生异常时更无法可靠清理。", "FileReader 实现 AutoCloseable。", "把资源声明到 try-with-resources 头中。"),
 ]);
 
@@ -273,7 +272,7 @@ add("foundation", "类与对象", "record 与值对象", [
   output("下面两项依次是什么？", "record User(String name) {}\nUser a = new User(\"Mia\");\nUser b = new User(\"Mia\");\nSystem.out.println(a.equals(b) + \":\" + a);", "true:User[name=Mia]", "record 自动按组件值比较，并生成包含组件名称和值的 toString。", "record 自动方法是浅层的；引用组件的内部变化需要谨慎。", "减少纯数据类型的样板代码，同时了解生成行为。"),
   output("输出是否相同？", "record Pair(int left, int right) {}\nSystem.out.println(new Pair(1, 2).hashCode() == new Pair(1, 2).hashCode());", "true", "两个 record 值相等，生成的 hashCode 对相同组件产生相同结果。", "不同值也可能出现哈希冲突。", "哈希码用于散列，不是唯一 ID。"),
   debug("为什么这个 record 声明非法？", "record Token(String value) {\n    String value;\n}", "删除重复字段声明；record 组件已经声明了对应的 private final 字段。", "组件字段由 record 语法生成，不能再声明同名实例字段。", "可以在规范构造器中校验或规范化组件值。", "把不变量放入构造过程，而不是重复定义组件存储。"),
-  debug("如何拒绝 null 名称并保持 record 简洁？", "record User(String name) {}", "使用紧凑构造器：`User { Objects.requireNonNull(name); }`。", "默认构造器不会自动验证引用组件非 null。", "验证需要导入 java.util.Objects。", "在值对象边界集中校验必需组件。"),
+  debug("如何拒绝 null 名称并保持 record 简洁？", "record User(String name) {}", "使用紧凑构造器：`record User(String name) { User { java.util.Objects.requireNonNull(name); } }`。", "自动生成的规范构造器不会校验引用组件非 null。", "紧凑构造器可在组件字段赋值前校验参数。", "在值对象边界集中校验必需组件。"),
 ]);
 
 add("advanced", "集合", "List 与可变性", [
@@ -296,7 +295,7 @@ add("advanced", "集合", "Set 与相等性", [
   output("集合大小是多少？", "var values = new java.util.HashSet<>(java.util.List.of(2, 2, 3, 3, 3));\nSystem.out.println(values.size());", "2", "Set 保留唯一元素 2 和 3。", "输入列表中的重复项不会成为集合中的重复元素。", "Set size 反映相等性规则下的不同元素数。"),
   output("程序按什么顺序输出？", "var values = new java.util.LinkedHashSet<>(java.util.List.of(\"b\", \"a\", \"b\", \"c\"));\nSystem.out.println(values);", "[b, a, c]", "重复的第二个 b 不再插入，剩余元素按首次插入顺序迭代。", "去重不会把元素按字母排序。", "需要排序时选用 TreeSet 或显式排序。"),
   output("TreeSet 中保留多少个元素？", "var values = new java.util.TreeSet<>(java.util.List.of(4, 1, 4, 2));\nSystem.out.println(values);", "[1, 2, 4]", "TreeSet 按自然顺序排列并移除比较结果为 0 的重复元素。", "比较器一致性会影响 TreeSet 对元素重复的判断。", "自定义比较器时确认 compare 的相等关系符合预期。"),
-  debug("为什么改变 key.id 后 contains 可能返回 false？", "var set = new java.util.HashSet<Key>();\nKey key = new Key(1);\nset.add(key);\nkey.id = 2;", "不要修改参与 equals/hashCode 的字段；可使用不可变 Key，或先 remove 后修改再 add。", "修改 id 后 hashCode 变化，元素仍在旧桶中。", "即使同一对象引用，哈希桶定位也可能与当前哈希值不一致。", "哈希集合中的键在驻留期间保持相等性状态不变。"),
+  debug("Key 的 equals/hashCode 均依赖 id。修改 id 后，为什么 set.contains(key) 可能返回 false？", "class Key { int id; Key(int id) { this.id = id; }\n    @Override public boolean equals(Object o) { return o instanceof Key k && id == k.id; }\n    @Override public int hashCode() { return id; } }\nvar set = new java.util.HashSet<Key>();\nKey key = new Key(1);\nset.add(key);\nkey.id = 2;\nSystem.out.println(set.contains(key));", "不要修改参与 equals/hashCode 的字段；可使用不可变 Key，或在修改前先 remove，修改后再 add。", "修改 id 后 hashCode 变化，元素仍在旧桶中。", "即使同一对象引用，哈希桶定位也可能与当前哈希值不一致。", "哈希集合中的键在驻留期间保持相等性状态不变。"),
   debug("怎样让这个 Set 按字母顺序迭代？", "var tags = new java.util.HashSet<>(java.util.List.of(\"z\", \"a\", \"m\"));", "使用 `new TreeSet<>(tags)`，或将元素复制到列表后排序。", "HashSet 不承诺稳定或自然排序顺序。", "偶然出现的某次迭代顺序不能作为契约。", "将排序需求交给有序容器或显式排序操作。"),
 ]);
 
@@ -305,7 +304,7 @@ add("advanced", "Map", "映射更新与查找", [
   quiz("single", "`Map.merge(key, value, remappingFunction)` 常用于什么？", ["键缺失时加入给定值，已存在时按函数合并。", "把 Map 按键排序。", "总是无条件覆盖成 value。", "删除所有 null 值。"], [0], "merge 对缺失或 null 映射建立值，对已有非 null 值执行合并函数。", "合并函数返回 null 时会删除该映射。", "计数累加常用 `merge(key, 1, Integer::sum)`。"),
   quiz("multiple", "关于 Map，哪些说法正确？", ["一个键最多映射到一个值。", "`put` 返回该键先前映射的值。", "Map 的所有实现都允许 null 键。", "`containsKey` 可区分不存在与映射到 null 的键。"], [0, 1, 3], "Map 以键唯一性组织映射，put 可返回旧值，containsKey 可判断键是否存在。", "例如 ConcurrentHashMap 不允许 null 键和值。", "阅读具体实现契约，不要假设接口所有实现支持相同 null 策略。"),
   quiz("multiple", "关于 HashMap 遍历，哪些说法正确？", ["可以遍历 `entrySet()` 同时取得键和值。", "普通 HashMap 不保证迭代顺序。", "遍历时对 Map 结构性修改通常安全且受支持。", "按键排序需要显式选用有序 Map 或排序键。"], [0, 1, 3], "entrySet 能直接读取键值对；HashMap 不提供排序保证。", "结构性修改可能触发 fail-fast 检测，应使用迭代器 remove 或并发设计。", "迭代顺序和并发修改都应按集合契约处理。"),
-  output("打印的映射是什么？", "var counts = new java.util.HashMap<String, Integer>();\ncounts.merge(\"java\", 1, Integer::sum);\ncounts.merge(\"java\", 1, Integer::sum);\nSystem.out.println(counts.get(\"java\"));", "2", "第一次 merge 建立计数 1，第二次用 Integer::sum 合并为 2。", "键第一次出现时不会调用已有值合并函数。", "merge 简化存在则更新、缺失则初始化的计数逻辑。"),
+  output("键 `java` 对应的累计值是多少？", "var counts = new java.util.HashMap<String, Integer>();\ncounts.merge(\"java\", 1, Integer::sum);\ncounts.merge(\"java\", 1, Integer::sum);\nSystem.out.println(counts.get(\"java\"));", "2", "第一次 merge 建立计数 1，第二次用 Integer::sum 合并为 2。", "键第一次出现时不会调用已有值合并函数。", "merge 简化存在则更新、缺失则初始化的计数逻辑。"),
   output("输出结果是什么？", "var map = new java.util.LinkedHashMap<String, Integer>();\nmap.put(\"x\", 1); map.put(\"y\", 2); map.put(\"x\", 3);\nSystem.out.println(map);", "{x=3, y=2}", "更新 x 的值不会重新插入键，插入顺序仍为 x 后 y。", "LinkedHashMap 默认保持插入顺序；访问顺序模式需另行配置。", "更新映射值与改变键迭代位置要分别判断。"),
   output("TreeMap 会以什么顺序打印键？", "var map = new java.util.TreeMap<Integer, String>();\nmap.put(8, \"e\"); map.put(2, \"b\"); map.put(5, \"c\");\nSystem.out.println(map.keySet());", "[2, 5, 8]", "TreeMap 按键自然顺序迭代。", "排序由键比较器决定，不由插入顺序决定。", "当操作依赖范围或有序遍历时考虑 TreeMap。"),
   debug("为什么这段代码在缺失键时会发生空指针异常？", "Integer count = counts.get(\"missing\");\nint next = count + 1;", "先用 `getOrDefault(\"missing\", 0)`，或使用 merge/computeIfAbsent 初始化。", "键不存在时 get 返回 null，自动拆箱会触发 NullPointerException。", "包装类型可能为 null，拆箱前应确认值存在。", "用 getOrDefault 表达缺失映射的默认值。"),
@@ -317,7 +316,7 @@ add("advanced", "泛型", "类型参数与通配符", [
   quiz("single", "方法只需要读取 Number 列表中的元素，常用哪种参数？", ["`List<? extends Number>`。", "`List<?>` 并允许写入 Double。", "`List<Number>`。", "`List<? super Integer>` 并把读出值当 Integer。"], [0], "上界通配符表示元素类型是 Number 或其子类型，适合从集合读取 Number。", "通过 extends 声明上界，不意味着集合只含直接的 Number。", "生产者用 extends：从源集合取值。"),
   quiz("multiple", "关于通配符，哪些说法正确？", ["`? extends T` 适合读取为 T。", "`? super T` 可以安全写入 T。", "从 `List<? extends Number>` 中可直接添加 Integer。", "`List<?>` 可读取元素为 Object。"], [0, 1, 3], "上界可安全读为 T；下界可安全写入 T；未知类型集合读取只能保证为 Object。", "extends 集合的具体子类型未知，通常不能安全添加非 null 值。", "PECS：生产者用 extends，消费者用 super。"),
   quiz("multiple", "以下哪些设计符合泛型规则？", ["方法可声明自己的类型参数 `<T> T first(List<T> values)`。", "`List<String>` 可以安全当作 `List<Object>`。", "限定参数可以写成 `<T extends Number>`。", "`List<String>` 与 `List<Integer>` 在运行时通常共用擦除后的 List 类。"], [0, 2, 3], "类型参数可在方法或类声明；T 可受边界约束，运行时采用类型擦除。", "泛型不变，String 列表不是 Object 列表。", "避免向参数化列表写入运行时不匹配元素。"),
-  output("编译期推断出的 first 返回值是什么？", "static <T> T first(java.util.List<T> items) { return items.get(0); }\nString name = first(java.util.List.of(\"A\", \"B\"));\nSystem.out.println(name);", "A", "实参列表的元素类型为 String，类型参数 T 推断为 String，返回首元素 A。", "泛型提供编译期类型关系，不需要在调用处强转。", "沿着实参类型跟踪类型参数推断。"),
+  output("编译器将 T 推断为 String 后，程序打印什么？", "static <T> T first(java.util.List<T> items) { return items.get(0); }\nString name = first(java.util.List.of(\"A\", \"B\"));\nSystem.out.println(name);", "A", "实参列表的元素类型为 String，类型参数 T 推断为 String，返回首元素 A。", "泛型提供编译期类型关系，不需要在调用处强转。", "沿着实参类型跟踪类型参数推断。"),
   output("下面读取到的值是什么？", "static double total(java.util.List<? extends Number> xs) { return xs.get(0).doubleValue(); }\nSystem.out.println(total(java.util.List.of(3)));", "3.0", "列表元素类型是 Integer，Integer 继承 Number 并提供 doubleValue。", "上界通配符适用于读取，不代表可以添加任意 Number。", "对多个数值子类型统一读取时使用 Number 上界。"),
   output("程序会输出什么？", "static void addOne(java.util.List<? super Integer> out) { out.add(1); }\nvar values = new java.util.ArrayList<Number>();\naddOne(values);\nSystem.out.println(values.get(0));", "1", "Number 是 Integer 的父类型，`? super Integer` 接受该列表并能安全写入 Integer。", "读出值只保证为 Object，不能直接当成 Integer。", "消费者集合使用 super 下界。"),
   debug("为什么无法把这个 List 传给方法？", "static void print(java.util.List<Number> values) {}\njava.util.List<Integer> ints = java.util.List.of(1, 2);\nprint(ints);", "若只读取，参数改为 `List<? extends Number>`；若要写入不同 Number，创建 `List<Number>`。", "List<Integer> 与 List<Number> 泛型不变，不能直接赋值。", "把集合当作只读源或可写目标后，再设计通配符方向。", "用 PECS 规则表达调用方的读取或写入意图。"),
@@ -332,7 +331,7 @@ add("advanced", "Stream", "流水线求值与转换", [
   output("结果列表是什么？", "var result = java.util.List.of(1, 2, 3, 4).stream()\n    .filter(n -> n % 2 == 0).map(n -> n * 10).toList();\nSystem.out.println(result);", "[20, 40]", "filter 保留偶数 2、4，map 将其乘 10。", "toList 返回的列表不可修改。", "按流水线顺序追踪每个元素经过的操作。"),
   output("count 的结果是多少？", "long count = java.util.List.of(\"a\", \"ab\", \"b\").stream()\n    .filter(s -> s.length() == 1).count();\nSystem.out.println(count);", "2", "长度为 1 的元素有 a 和 b，共两个。", "count 是终端操作，运行后该 Stream 不能再次使用。", "把中间筛选条件转成逐元素判断。"),
   output("打印的列表是什么？", "var lengths = java.util.List.of(\"java\", \"vm\").stream()\n    .map(String::length).toList();\nSystem.out.println(lengths);", "[4, 2]", "方法引用 String::length 将每个字符串映射为长度。", "map 改变流元素类型，从 String 变成 Integer。", "用方法引用替代只转发参数的简单 lambda。"),
-  debug("为什么这个 Stream 第二次终端操作会抛 IllegalStateException？", "var stream = java.util.List.of(1, 2).stream();\nlong count = stream.count();\nstream.forEach(System.out::println);", "每个终端操作创建并使用一个新的 Stream：再次调用 `list.stream()` 后再遍历。", "终端操作已消费 stream，Stream 不可复用。", "保存源集合，而不是缓存已经消费的流。", "每条流水线只执行一次。"),
+  debug("为什么这个 Stream 第二次终端操作会抛 IllegalStateException？", "var stream = java.util.List.of(1, 2).stream();\nlong count = stream.count();\nstream.forEach(System.out::println);", "为第二个终端操作新建 Stream，例如再次使用 `java.util.List.of(1, 2).stream().forEach(System.out::println)`。", "终端操作已消费 stream，Stream 不可复用。", "保存源集合，而不是缓存已经消费的流。", "每条流水线只执行一次。"),
   debug("为什么没有打印任何内容？", "java.util.List.of(1, 2, 3).stream()\n    .peek(System.out::println);", "追加终端操作，例如 `.forEach(System.out::println)`，或收集结果。", "peek 是中间操作，不会自行触发 Stream 求值。", "调试时不要把 peek 当作终端输出操作。", "流水线必须由终端操作启动。"),
 ]);
 
@@ -354,7 +353,7 @@ add("advanced", "泛型", "函数式接口与 Optional", [
   quiz("multiple", "关于 Optional，哪些说法正确？", ["`orElse` 的参数表达式会先被求值。", "`orElseGet` 可在值缺失时延迟调用 supplier。", "`Optional.of(null)` 返回 empty。", "`Optional.ofNullable(null)` 返回 empty。"], [0, 1, 3], "orElse 会预先计算参数；orElseGet 按需调用；ofNullable 可接收 null。", "Optional.of(null) 会抛 NullPointerException。", "默认值计算昂贵或有副作用时使用 orElseGet。"),
   quiz("multiple", "关于 lambda，哪些描述正确？", ["lambda 需要目标函数式接口类型。", "lambda 读取的局部变量需为 final 或 effectively final。", "lambda 总是创建一个新线程。", "方法引用可简写某些直接转发参数的 lambda。"], [0, 1, 3], "lambda 通过目标类型确定函数签名，捕获局部变量要求不再重新赋值。", "lambda 描述行为，不会自动启动线程。", "区分行为对象、执行线程和执行时机。"),
   output("输出什么？", "java.util.Optional<String> name = java.util.Optional.of(\"Ada\");\nSystem.out.println(name.map(String::toUpperCase).orElse(\"N/A\"));", "ADA", "Optional 有值时执行 map，将字符串转换为大写；orElse 返回该值。", "map 不会修改原字符串。", "使用 Optional 管理可缺失值时保持链式转换明确。"),
-  output("supplier 会执行几次？", "int value = java.util.Optional.of(7).orElseGet(() -> { System.out.println(\"fallback\"); return 0; });\nSystem.out.println(value);", "7", "Optional 已有值，因此 supplier 不执行，只输出 7。", "orElseGet 的 supplier 仅在空 Optional 时调用。", "懒加载默认值时可用 orElseGet。"),
+  output("程序打印什么？", "int value = java.util.Optional.of(7).orElseGet(() -> { System.out.println(\"fallback\"); return 0; });\nSystem.out.println(value);", "7", "Optional 已有值，因此 supplier 不执行，只输出 7。", "orElseGet 的 supplier 仅在空 Optional 时调用。", "懒加载默认值时可用 orElseGet。"),
   output("输出哪一个值？", "java.util.function.Function<String, Integer> length = String::length;\nSystem.out.println(length.apply(\"Java\"));", "4", "String::length 是接收 String 并返回 int 的实例方法引用，自动装箱为 Integer。", "方法引用仍需符合目标函数式接口的参数和返回类型。", "先写出函数参数与结果类型，再判断能否引用方法。"),
   debug("为什么捕获的 count 无法编译？", "int count = 0;\nRunnable task = () -> System.out.println(count);\ncount++;", "移除后续对 count 的重新赋值，或先把值复制到一个不会再变更的局部变量。", "被 lambda 捕获的局部变量必须 final 或 effectively final。", "局部变量捕获并不会自动形成可变闭包单元。", "把需要共享的可变状态放到明确的对象或并发容器中。"),
   debug("为什么 Optional.of 这一行抛出异常？应按可空输入怎样包装？", "String value = null;\nvar wrapped = java.util.Optional.of(value);", "将 `of` 改为 `Optional.ofNullable(value)`。", "Optional.of 要求参数非 null。", "若 null 表示程序错误，of 的异常也可能是有意校验。", "明确区分禁止 null 和允许缺失两种契约。"),
@@ -368,7 +367,7 @@ add("advanced", "集合", "Comparator 与有序数据", [
   output("排序后的数字列表是什么？", "var values = new java.util.ArrayList<>(java.util.List.of(9, 2, 5));\nvalues.sort(java.util.Comparator.naturalOrder());\nSystem.out.println(values);", "[2, 5, 9]", "naturalOrder 按整数自然升序排列列表本身。", "List.sort 会修改这个列表。", "需要保留原顺序时先复制或用 Stream.sorted。"),
   output("下面姓名的排序顺序是什么？", "var names = java.util.List.of(\"Bob\", \"Al\", \"Eve\").stream()\n    .sorted(java.util.Comparator.comparingInt(String::length).thenComparing(java.util.Comparator.naturalOrder())).toList();\nSystem.out.println(names);", "[Al, Bob, Eve]", "先按长度升序，再对同长度姓名按自然字母顺序比较。", "次级比较器只在主要键相等时生效。", "复合排序时明确每一级键的顺序与方向。"),
   output("结果列表是什么？", "var values = java.util.List.of(3, 1, 2).stream()\n    .sorted(java.util.Comparator.reverseOrder()).toList();\nSystem.out.println(values);", "[3, 2, 1]", "reverseOrder 按整数自然顺序的反向排列。", "Comparator.reverseOrder 需要元素类型实现 Comparable。", "使用反向比较器表达降序而不是手写不对称比较。"),
-  debug("如何避免年龄相减导致的比较溢出？", "people.sort((a, b) -> a.age - b.age);", "改为 `people.sort(Comparator.comparingInt(Person::age))` 或 `Integer.compare(a.age, b.age)`。", "当年龄值接近 int 极值时，减法可能溢出并破坏排序关系。", "错误比较器可能违反传递性并造成不可预测排序。", "不要用相减作为通用数值比较。"),
+  debug("以下排序代码使用 int 字段 age。如何避免相减比较时溢出？", "people.sort((a, b) -> a.age - b.age);", "改为 `people.sort((a, b) -> Integer.compare(a.age, b.age))`。", "当 age 值接近 int 极值时，减法可能溢出并破坏排序关系。", "错误比较器可能违反传递性并造成不可预测排序。", "不要用相减作为通用数值比较。"),
   debug("为什么姓名相同时无法按年龄排列？怎样加入第二排序键？", "people.sort(java.util.Comparator.comparing(Person::name));", "追加 `.thenComparingInt(Person::age)`。", "现有比较器只看 name，同名对象比较结果为 0。", "排序稳定时同键元素会维持原相对顺序，但这不等于按年龄排序。", "将每个业务排序条件都写入比较器组合。"),
 ]);
 
@@ -399,7 +398,7 @@ add("internals", "JVM 内存", "栈、堆与对象引用", [
 add("internals", "类加载", "加载、初始化与反射", [
   quiz("single", "主动使用一个类时，类初始化通常先后按什么顺序进行？", ["先初始化父类，再初始化子类。", "先初始化子类，再初始化父类。", "按字段名称字母序。", "所有类在 JVM 启动时同时初始化。"], [0], "类初始化会保证父类先于子类；接口相关细节则需按具体初始化规则分析。", "类加载、链接与初始化是不同阶段。", "阅读静态初始化输出时，沿父子关系追踪。"),
   quiz("single", "`Class.forName(\"example.Widget\")` 的常见效果是什么？", ["加载并初始化该类（默认使用当前调用方类加载器）。", "只生成源码文件。", "实例化一个 Widget 对象。", "自动调用 Widget 的所有实例方法。"], [0], "常见单参数 Class.forName 会加载并初始化目标类。", "得到 Class 对象不等于创建实例。", "需要仅加载而不初始化时，使用带 initialize 参数的重载。"),
-  quiz("multiple", "类加载器双亲委派模型通常有哪些目的？", ["优先让父加载器尝试加载类。", "降低核心 API 被用户类重复定义替换的风险。", "保证所有类只能由启动类加载器加载。", "应用仍可通过自定义加载器扩展加载策略。"], [0, 1, 3], "双亲委派有助于类身份与核心类安全，同时不排除自定义加载器。", "不同类加载器可以定义不同的同名类。", "类身份由二进制名称和定义它的加载器共同决定。"),
+  quiz("multiple", "关于类加载器的双亲委派机制，哪些说法正确？", ["优先让父加载器尝试加载类。", "降低核心 API 被用户类重复定义替换的风险。", "保证所有类只能由启动类加载器加载。", "应用仍可通过自定义加载器扩展加载策略。"], [0, 1, 3], "双亲委派有助于类身份与核心类安全，同时不排除自定义加载器。", "不同类加载器可以定义不同的同名类。", "类身份由二进制名称和定义它的加载器共同决定。"),
   quiz("multiple", "关于反射和 Class 对象，哪些描述正确？", ["`obj.getClass()` 返回对象运行时类的 Class 对象。", "反射可以检查类型成员并在权限允许时调用方法。", "同名类即便由不同类加载器定义，也必然是相同运行时类型。", "反射 API 操作失败可能抛出受检或运行时异常。"], [0, 1, 3], "Class 提供运行时类型信息；反射能动态操作成员并受访问控制影响。", "定义加载器不同可能使同名二进制类成为不同类型。", "使用反射时应处理成员不存在、访问受限和目标调用异常。"),
   output("静态初始化的打印顺序是什么？", "class Base { static { System.out.print(\"B\"); } }\nclass Child extends Base { static { System.out.print(\"C\"); } }\nClass<?> type = Child.class;\nnew Child();", "BC", "取 Child.class 字面量不会触发初始化；new Child 时先初始化 Base，再初始化 Child。", "获取类字面量与主动初始化不是同一操作。", "区分类信息解析与类初始化触发点。"),
   output("通过父类引用查看的运行时类名是什么？", "class Parent {}\nclass Child extends Parent {}\nParent item = new Child();\nSystem.out.println(item.getClass().getSimpleName());", "Child", "getClass 返回对象运行时类型，而非变量声明类型。", "静态类型影响编译期成员检查。", "用 getClass 观察对象的实际类型。"),
@@ -410,14 +409,18 @@ add("internals", "类加载", "加载、初始化与反射", [
 
 add("internals", "JVM 内存", "GC 可达性与引用", [
   quiz("single", "Java 垃圾回收器主要依据什么判断对象是否可回收？", ["从 GC Roots 出发是否仍有可达路径。", "对象最后一次创建的时间。", "对象的 hashCode 是否为 0。", "程序员是否调用过 System.gc。"], [0], "主流追踪式 GC 根据对象从根集合是否可达判断存活。", "System.gc 只是请求，不保证立刻或必然执行回收。", "对象生命周期取决于引用图，而非手动析构调用。"),
-  quiz("single", "SoftReference 与 WeakReference 的一般区别是什么？", ["软引用通常在内存压力下才可能被清除，弱引用对象在下一次相关 GC 时即可被清除。", "两者都保证对象永不回收。", "弱引用比强引用更强。", "软引用对象必须放在栈上。"], [0], "两种特殊引用强度不同；软引用常用于内存敏感缓存，弱引用更容易被清除。", "具体回收时机仍由运行时决定。", "缓存正确性不应依赖引用对象一定存活多久。"),
+  quiz("single", "仅通过 SoftReference 或 WeakReference 可达的对象，在垃圾回收时有何区别？", ["GC 可因内存需求清除软引用；弱引用不阻止其对象在下一次相关 GC 中被回收。", "两者都保证对象永不回收。", "弱引用比强引用更强。", "软引用对象必须放在栈上。"], [0], "两种引用强度不同；软引用常用于内存敏感缓存，弱引用对象更容易被回收。", "具体回收时机仍由运行时决定。", "缓存正确性不应依赖引用对象一定存活多久。"),
   quiz("multiple", "关于 Java 对象回收，哪些说法正确？", ["不可达表示对象符合回收条件，不代表立即回收。", "finalize 提供可靠、确定时机的资源释放。", "try-with-resources 适合确定性关闭文件资源。", "循环引用的对象只要整个环不可达，仍可被追踪式 GC 回收。"], [0, 2, 3], "追踪式 GC 能回收不可达循环；文件等资源应使用确定性的 close 结构。", "finalize 已被弃用方向所取代且不可靠，不能用于资源生命周期保证。", "用 AutoCloseable 和 try-with-resources 管理外部资源。"),
   quiz("multiple", "哪些对象通常可能作为 GC Root 或根集合来源？", ["当前活动线程栈中可达的引用。", "类静态字段引用。", "JNI 句柄引用。", "任何已不可达对象的自身引用。"], [0, 1, 2], "活动栈、静态字段和 JNI 引用等可构成根集合来源。", "不可达对象内部的环不能凭自身恢复外部可达性。", "沿根到对象的引用路径判断存活。"),
   output("这段代码运行后是否能访问到 value？", "Object value = new Object();\nObject alias = value;\nvalue = null;\nSystem.out.println(alias != null);", "true", "alias 仍指向对象，因此局部变量引用仍可访问该对象。", "清除一个变量不等于对象无引用。", "检查是否有其他别名保持引用。"),
-  output("输出是什么？", "var reference = new java.lang.ref.WeakReference<>(new Object());\nSystem.out.println(reference.get() == null);", "不确定：GC 时机未指定", "临时对象没有其他强引用，但 GC 是否已运行以及何时运行没有保证。", "在无压力的短程序中结果也可能受调度影响。", "不要把弱引用清除时机写成确定性业务结果。"),
-  output("显式调用 gc 后对象一定已被回收吗？", "Object value = new Object();\nvalue = null;\nSystem.gc();", "不保证", "System.gc 是向运行时提出回收建议，不保证立即执行，也不保证某个对象一定被回收。", "System.gc 不是同步销毁 API。", "正确程序不依赖手动触发 GC 的时间。"),
+  {
+    ...quiz("single", "下面的弱引用代码打印 true 还是 false，哪种判断准确？", ["两者都可能；没有保证 GC 已在读取前清除弱引用。", "一定打印 true。", "一定打印 false。", "代码必然无法编译。"], [0], "新对象没有其他强引用，但 GC 是否在读取前运行没有保证，因此结果不确定。", "不要把弱引用清除时机当成确定的输出。", "弱引用对象的存活时间不能用于确定性业务逻辑。"),
+    code: "var ref = new java.lang.ref.WeakReference<>(new Object());\nSystem.out.println(ref.get() == null);",
+    languageVersion: 21,
+  },
+  quiz("single", "执行 `System.gc()` 后，能否断定某个不可达对象已经被回收？", ["不能；调用仅请求 JVM 尝试回收，不保证特定对象的回收时机。", "能；方法返回前所有不可达对象必须回收。", "能；只要引用变量被赋值为 null 就立即回收。", "不能；因为 Java 完全不支持垃圾回收。"], [0], "System.gc() 不保证特定对象在调用返回前被回收。", "System.gc 不是同步销毁 API。", "正确程序不依赖手动触发 GC 的时间。"),
   debug("为什么这段缓存不能保证对象在需要时还存在？", "var cache = new java.util.WeakHashMap<Object, String>();\nObject key = new Object();\ncache.put(key, \"value\");\nkey = null;", "若缓存值必须保留映射，应采用强引用键或其他明确生命周期策略；不要依赖 WeakHashMap 保留键。", "弱键在没有其他强引用后可被 GC 清除，映射可能随之移除。", "弱引用缓存具有非确定性存活时间。", "先定义缓存过期策略，再选择强引用或特殊引用。"),
-  debug("为什么用 finalize 关闭文件可能造成资源泄漏？", "class ReaderOwner {\n    protected void finalize() { closeFile(); }\n}", "让对象实现 AutoCloseable，并由调用方用 try-with-resources 显式关闭。", "finalize 调用时间不确定，甚至可能在进程结束前都不执行。", "垃圾回收与外部资源关闭是不同生命周期。", "对文件、socket 等资源使用确定性释放机制。"),
+  debug("为什么用 finalize 关闭文件可能造成资源泄漏？", "class ReaderOwner {\n    java.io.Reader reader;\n    ReaderOwner(java.io.Reader reader) { this.reader = reader; }\n    @Override protected void finalize() throws java.io.IOException { reader.close(); }\n}", "让对象实现 AutoCloseable，并由调用方用 try-with-resources 显式关闭。", "finalize 调用时间不确定，也可能被禁用；即使执行，抛出的异常也不会为调用方提供可靠的关闭保证。", "垃圾回收与外部资源关闭是不同生命周期。", "对文件、socket 等资源使用确定性释放机制。"),
 ]);
 
 add("internals", "并发基础", "Java 内存模型与原子性", [
@@ -429,7 +432,7 @@ add("internals", "并发基础", "Java 内存模型与原子性", [
   output("原子计数最终是多少？", "var count = new java.util.concurrent.atomic.AtomicInteger(0);\ncount.incrementAndGet();\ncount.addAndGet(4);\nSystem.out.println(count.get());", "5", "原子值从 0 加 1，再加 4，结果为 5。", "原子类只保护其定义的原子操作；复合业务逻辑仍需设计同步。", "把共享计数封装到专门的原子类型中。"),
   output("执行后打印的布尔值是什么？", "var ready = new java.util.concurrent.atomic.AtomicBoolean(false);\nready.set(true);\nSystem.out.println(ready.get());", "true", "同线程先写 true 再读取，因此得到 true；AtomicBoolean 还支持跨线程原子读写。", "这个顺序题本身不展示竞争条件。", "原子类既提供原子性，也提供相应可见性语义。"),
   debug("为什么 volatile counter 仍可能少计？", "volatile int counter;\nvoid increment() { counter++; }", "改用 `AtomicInteger.incrementAndGet()`，或在整个 increment 方法/临界区加同步。", "counter++ 先读值、计算新值再写回，多个线程的步骤可能交错覆盖。", "volatile 只保证字段访问语义，不保证复合更新原子。", "把不可分割操作作为一个同步单位保护。"),
-  debug("线程启动后为什么不能直接假设结果已写好？怎样等待它完成？", "Thread worker = new Thread(() -> result = compute());\nworker.start();\nSystem.out.println(result);", "在读取前调用 `worker.join()`，并处理 InterruptedException。", "start 只启动异步执行，不等待 run 完成。", "调度顺序不是固定的。", "用 join、Future.get 等完成同步而非依赖休眠时间。"),
+  debug("线程启动后为什么不能直接假设结果已写好？怎样等待它完成？", "int[] result = {0};\nThread worker = new Thread(() -> result[0] = 7);\nworker.start();\nSystem.out.println(result[0]);", "在读取前调用 `worker.join()`，并处理 InterruptedException。", "start 只启动异步执行，不等待 run 完成；未同步的读取也不能依赖工作线程写入已可见。", "调度顺序不是固定的。", "用 join、Future.get 等完成同步而非依赖休眠时间。"),
 ]);
 
 add("internals", "锁与线程池", "锁、Executor 与并发容器", [
@@ -445,7 +448,7 @@ add("internals", "锁与线程池", "锁、Executor 与并发容器", [
 ]);
 
 add("comprehensive", "综合应用", "订单汇总与集合建模", [
-  quiz("single", "汇总订单金额时，金额字段与数量相乘后再累计，优先选择什么类型存放总额？", ["long，并在乘法前保证至少一个操作数按 long 运算。", "byte，因为单个订单通常较小。", "boolean，因为只需要判断是否有金额。", "char，因为金额是非负整数。"], [0], "多个订单金额相加可能超过 int；若乘法先以 int 发生溢出，之后转 long 也无法恢复。", "扩大总额变量不一定改变右侧中间表达式的类型。", "从乘法操作数开始使用 long，并检查金额单位与溢出边界。"),
+  quiz("single", "金额以最小货币单位的整数表示，且已确认总额不超过 long 范围。金额乘数量再累计时，应优先用什么类型保存总额？", ["long，并在乘法前保证至少一个操作数按 long 运算。", "byte，因为单个订单通常较小。", "boolean，因为只需要判断是否有金额。", "char，因为金额是非负整数。"], [0], "多个订单金额相加可能超过 int；若乘法先以 int 发生溢出，之后转 long 也无法恢复。", "扩大总额变量不一定改变右侧中间表达式的类型。", "从乘法操作数开始使用 long，并检查金额单位与溢出边界。"),
   quiz("single", "按商品 SKU 累计订单行数量，哪种结构最直接？", ["Map<String, Long>，SKU 作键、累计数量作值。", "Set<Long>，只保存所有行数。", "Stack<String>，把 SKU 当作调用栈。", "用数组下标直接当 SKU 字符串。"], [0], "Map 将业务键映射到累计值，适合计数与汇总。", "若使用 Integer 汇总，也要评估总量是否可能超过范围。", "根据访问方式选用最合适的数据结构。"),
   quiz("multiple", "实现可靠订单汇总时，哪些做法有帮助？", ["为金额、数量和总额选择足够宽的数值类型。", "用不可变订单记录表达已校验的订单行。", "对每一行无条件吞掉解析异常并继续，不记录错误。", "对重复 SKU 使用 merge 或明确的累加逻辑。"], [0, 1, 3], "可靠汇总需要范围适当的类型、清楚的数据模型和重复键聚合策略。", "吞异常会让部分失败被误认为成功汇总。", "输入校验与聚合逻辑都应保留可解释的失败信息。"),
   quiz("multiple", "关于汇总管道，哪些检查可减少结果错误？", ["确认空输入时的返回值。", "检查重复键由覆盖、求和还是拒绝处理。", "确认金额舍入规则与币种精度。", "依赖 HashMap 的迭代顺序生成报表。"], [0, 1, 2], "空输入、冲突键和货币精度都是汇总的业务规则。", "HashMap 没有排序承诺。", "把报表顺序作为显式排序步骤。"),
@@ -473,7 +476,7 @@ add("comprehensive", "综合应用", "异常处理与服务边界", [
   quiz("single", "当方法需要返回“有值或没有值”，且缺失是正常业务状态时，哪种结果表达更清晰？", ["Optional<T> 或显式结果类型。", "返回 null 且不写文档。", "返回任意特殊负数作为所有类型的缺失值。", "捕获所有异常后返回对象的 toString。"], [0], "显式结果类型让调用方处理缺失分支。", "null 可用但需要稳定的契约与防护。", "将正常缺失和异常失败区分开。"),
   quiz("multiple", "生产级文件导入流程中，哪些做法有助于数据可靠？", ["显式指定字符集。", "资源用 try-with-resources 关闭。", "校验每条输入并报告行号。", "遇到格式错误就静默跳过且仍报告全部导入成功。"], [0, 1, 2], "编码、资源管理和逐条校验能让输入过程可重现且可诊断。", "静默跳过会让结果与输入内容不一致。", "定义失败时回滚、部分接受或报告错误的业务策略。"),
   quiz("multiple", "关于并发服务的共享状态，哪些设计较稳妥？", ["使用线程安全的并发容器或在临界区同步。", "明确对象的所有权与可变状态边界。", "共享 ArrayList 的多线程 add 一定安全。", "把读取、校验和更新不变量作为整体原子操作。"], [0, 1, 3], "安全共享需要线程安全容器、明确所有权，并保护跨字段不变量。", "单个容器的线程安全也不自动使多步业务事务原子。", "根据业务不变量的范围设计同步边界。"),
-  output("构造器验证失败后捕获的消息是什么？", "try {\n    java.util.Objects.requireNonNull(null, \"name\");\n} catch (NullPointerException ex) {\n    System.out.println(ex.getMessage());\n}", "name", "requireNonNull 收到 null 时抛 NullPointerException，并将 name 作为消息。", "验证失败应在边界尽早显现。", "给参数校验异常提供能定位字段的消息。"),
+  output("参数校验抛出异常后，捕获并打印的消息是什么？", "try {\n    java.util.Objects.requireNonNull(null, \"name\");\n} catch (NullPointerException ex) {\n    System.out.println(ex.getMessage());\n}", "name", "requireNonNull 收到 null 时抛 NullPointerException，并将 name 作为消息。", "验证失败应在边界尽早显现。", "给参数校验异常提供能定位字段的消息。"),
   output("关闭前后打印顺序是什么？", "var log = new StringBuilder();\ntry (var resource = new AutoCloseable() { public void close() { log.append(\"C\"); } }) { log.append(\"W\"); }\nSystem.out.println(log);", "WC", "try 主体追加 W，离开 try 时 close 追加 C。", "资源关闭发生在控制流离开 try-with-resources 主体时。", "把资源生命周期和主体操作放入同一结构。"),
   output("程序输出什么？", "var result = java.util.Optional.ofNullable(\"\")\n    .filter(s -> !s.isBlank()).orElse(\"fallback\");\nSystem.out.println(result);", "fallback", "Optional 有空字符串，但 filter 因其 blank 丢弃值，orElse 返回 fallback。", "Optional.ofNullable 只检查 null，不会自动过滤空字符串。", "把 null、空串和空白串策略分别写清楚。"),
   debug("为什么 catch 之后调用方仍以为导入成功？怎样表达失败？", "try { importFile(path); } catch (IOException ignored) { }\nreturn ImportResult.success();", "在异常时返回失败结果或带错误详情的结果；必要时保留异常 cause 并记录上下文。", "异常被忽略后仍无条件返回 success，失败被伪装为成功。", "不要用空 catch 隐藏数据导入失败。", "让 API 的结果状态真实反映操作结果。"),
@@ -483,6 +486,59 @@ add("comprehensive", "综合应用", "异常处理与服务边界", [
 const pilotCounts = { beginner: 6, foundation: 8, advanced: 8, internals: 5, comprehensive: 3 };
 const fullCounts = { beginner: 60, foundation: 80, advanced: 80, internals: 50, comprehensive: 30 };
 const typeCounts = Object.fromEntries(["single", "multiple", "output", "debug"].map((type) => [type, 0]));
+const defaultDifficulties = {
+  beginner: { single: "基础", multiple: "基础", output: "基础", debug: "巩固" },
+  foundation: { single: "基础", multiple: "巩固", output: "巩固", debug: "巩固" },
+  advanced: { single: "巩固", multiple: "巩固", output: "巩固", debug: "综合" },
+  internals: { single: "巩固", multiple: "综合", output: "巩固", debug: "综合" },
+  comprehensive: { single: "巩固", multiple: "综合", output: "巩固", debug: "综合" },
+};
+const difficultyOverrides = {
+  "J01-010": "巩固", "J01-020": "巩固", "J01-021": "巩固", "J01-022": "巩固",
+  "J01-045": "巩固", "J01-046": "巩固", "J01-049": "巩固",
+  "J02-015": "综合", "J02-023": "综合", "J02-024": "综合", "J02-030": "综合",
+  "J02-059": "综合", "J02-068": "综合", "J02-071": "综合",
+  "J03-009": "基础", "J03-010": "基础", "J03-021": "基础", "J03-045": "基础",
+  "J03-047": "巩固", "J03-048": "巩固", "J03-064": "巩固", "J03-079": "巩固",
+  "J04-010": "基础", "J04-011": "基础", "J04-012": "基础", "J04-020": "基础",
+  "J04-028": "基础", "J04-029": "巩固", "J04-030": "巩固", "J04-039": "基础",
+  "J05-005": "巩固", "J05-013": "基础", "J05-014": "基础", "J05-017": "基础",
+  "J05-018": "基础", "J05-019": "基础", "J05-026": "基础", "J05-028": "巩固",
+};
+let generatedSingleCount = 0;
+let generatedMultiCount = 0;
+
+function shuffleGeneratedOptions(question) {
+  if (!question.options) return question;
+  const answerIds = new Set(Array.isArray(question.answer) ? question.answer : [question.answer]);
+  let reordered;
+  if (question.type === "single") {
+    const correct = question.options.find((option) => answerIds.has(option.id));
+    const wrong = question.options.filter((option) => !answerIds.has(option.id));
+    const target = generatedSingleCount % question.options.length;
+    const shift = Math.floor(generatedSingleCount / question.options.length) % wrong.length;
+    const rotatedWrong = [...wrong.slice(shift), ...wrong.slice(0, shift)];
+    reordered = [...rotatedWrong];
+    reordered.splice(target, 0, correct);
+    generatedSingleCount += 1;
+  } else {
+    const count = generatedMultiCount++;
+    const offset = count % question.options.length;
+    reordered = [...question.options.slice(offset), ...question.options.slice(0, offset)];
+    if (Math.floor(count / question.options.length) % 2 === 1) reordered.reverse();
+  }
+  const options = reordered.map((option, index) => ({
+    id: String.fromCharCode(65 + index),
+    text: option.text,
+  }));
+  const newAnswerIds = options.filter((_, index) => answerIds.has(reordered[index].id)).map((option) => option.id);
+  const oldAnalysis = question.explanation.optionAnalysis;
+  const explanation = oldAnalysis
+    ? { ...question.explanation, optionAnalysis: Object.fromEntries(reordered.map((option, index) => [options[index].id, oldAnalysis[option.id]])) }
+    : question.explanation;
+  return { ...question, options, answer: question.type === "single" ? newAnswerIds[0] : newAnswerIds, explanation };
+}
+
 let bankSize = 0;
 const preparedBanks = [];
 
@@ -501,11 +557,21 @@ for (const stage of stages) {
     throw new Error(`${stage.id}: 需要新增 ${expectedAdditions} 题，当前 ${generated.length} 题，题型分布 ${JSON.stringify(distribution)}。`);
   }
 
-  const questions = [...pilot, ...generated].map((question, index) => ({
-    id: `${stage.prefix}-${String(index + 1).padStart(3, "0")}`,
-    stage: stage.id,
-    ...question,
-  }));
+  const questions = [...pilot, ...generated].map((original, index) => {
+    const id = `${stage.prefix}-${String(index + 1).padStart(3, "0")}`;
+    const isPilot = index < pilot.length;
+    const question = isPilot ? original : shuffleGeneratedOptions(original);
+    return {
+      ...question,
+      id,
+      stage: stage.id,
+      difficulty: difficultyOverrides[id] ?? (isPilot ? question.difficulty : defaultDifficulties[stage.id][question.type]),
+      ...(question.options && { options: question.options.map((option) => ({
+        ...option,
+        text: option.text.trim().replace(/[。．.]$/u, ""),
+      })) }),
+    };
+  });
   const fingerprints = new Set();
   for (const question of questions) {
     const fingerprint = `${question.stem.trim()}\u0000${question.code?.trim() ?? ""}`;

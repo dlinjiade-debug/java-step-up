@@ -39,9 +39,10 @@ npm run preview:lan
 npm test
 npm run check:content -- --full
 npm run check:java
+npm run check:answers
 ```
 
-`check:content` 会检查题目字段、ID、阶段配额、题型、答案引用、解析和 Java 版本。`check:java` 检查题目代码片段的引号、注释和括号结构；它不编译片段，因为代码纠错题会故意包含错误，其他题目的代码也以页面中的片段形式呈现。
+`check:content` 会检查题目字段、ID、阶段配额、题型、答案引用、解析和 Java 版本。`check:java` 检查代码片段的引号、注释和括号结构。`check:answers` 使用 JDK 编译并运行全部代码输出题，核对实际输出与参考答案；代码纠错题故意包含错误，不参与编译核对。
 
 题库位于 `src/data/questions/`，每个阶段一个 JSON 文件。需要重建完整题库时运行：
 
@@ -51,6 +52,8 @@ npm run check:content -- --full
 ```
 
 生成器会保留每阶段原有的试点题，并稳定地重新生成其余题目。题目契约定义在 `src/types/question.ts`。
+
+完整题目、选项、答案和解析可阅读 [300 题修订版](./docs/optimized-java-300-questions.md)。重新生成题库后运行 `npm run export:bank` 更新文档。
 
 ## 学习记录与离线使用
 

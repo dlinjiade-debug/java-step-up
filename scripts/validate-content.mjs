@@ -41,6 +41,7 @@ export function validateQuestions(questions) {
     if (!allowedTypes.has(question.type)) errors.push(`${at}: 未知题型。`);
     if (!allowedDifficulties.has(question.difficulty)) errors.push(`${at}: 未知难度。`);
     if (!text(question.stem)) errors.push(`${at}: 缺少题干。`);
+    else if (!question.stem.trim().endsWith("？")) errors.push(`${at}: 题干应以中文问号结尾。`);
     if (!isRecord(question.explanation)
       || !text(question.explanation.reasoning)
       || !text(question.explanation.pitfall)
@@ -59,12 +60,15 @@ export function validateQuestions(questions) {
       if (!hasOptions || question.options.length < 2) {
         errors.push(`${at}: 单选和多选题至少需要两个选项。`);
       } else {
+        if (question.options.length !== 4) errors.push(`${at}: 单选和多选题需要四个选项。`);
         const optionIds = new Set();
         for (const option of question.options) {
           if (!isRecord(option) || !text(option.id) || !text(option.text)) errors.push(`${at}: 选项必须包含 ID 和文字。`);
           else if (optionIds.has(option.id)) errors.push(`${at}: 选项 ID ${option.id} 重复。`);
           else optionIds.add(option.id);
+          if (text(option?.text) && /[。．.]$/u.test(option.text)) errors.push(`${at}: 选项末尾不加句号。`);
         }
+        if ([...optionIds].join("") !== "ABCD") errors.push(`${at}: 选项 ID 应依次为 A、B、C、D。`);
         const answers = Array.isArray(question.answer) ? question.answer : [question.answer];
         if (question.type === "single" && (Array.isArray(question.answer) || answers.length !== 1)) errors.push(`${at}: 单选题答案必须是一个选项 ID。`);
         if (question.type === "multiple" && (!Array.isArray(question.answer) || answers.length < 2)) errors.push(`${at}: 多选题答案必须是至少两个选项 ID。`);
@@ -77,8 +81,13 @@ export function validateQuestions(questions) {
 
     if (question.explanation?.optionAnalysis !== undefined) {
       if (!isRecord(question.explanation.optionAnalysis)) errors.push(`${at}: optionAnalysis 必须是对象。`);
-      else for (const key of Object.keys(question.explanation.optionAnalysis)) {
-        if (!question.options?.some((option) => option.id === key)) errors.push(`${at}: optionAnalysis 引用了不存在的选项 ${key}。`);
+      else {
+        for (const key of Object.keys(question.explanation.optionAnalysis)) {
+          if (!question.options?.some((option) => option.id === key)) errors.push(`${at}: optionAnalysis 引用了不存在的选项 ${key}。`);
+        }
+        for (const option of question.options ?? []) {
+          if (!text(question.explanation.optionAnalysis[option.id])) errors.push(`${at}: 缺少选项 ${option.id} 的解析。`);
+        }
       }
     }
   }

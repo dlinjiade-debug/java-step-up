@@ -12,8 +12,10 @@
     "preview:lan": "vite preview --host 0.0.0.0 --port 4175 --strictPort",
     "test": "node --experimental-strip-types --test",
     "generate:bank": "node scripts/generate-full-bank.mjs",
+    "export:bank": "node scripts/export-question-bank.mjs",
     "check:content": "node scripts/validate-content.mjs",
-    "check:java": "node scripts/validate-java.mjs"
+    "check:java": "node scripts/validate-java.mjs",
+    "check:answers": "node scripts/verify-java-output.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "5.2.0",
