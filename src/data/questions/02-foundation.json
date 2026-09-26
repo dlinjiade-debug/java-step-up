@@ -1,0 +1,1982 @@
+[
+  {
+    "id": "J02-001",
+    "stage": "foundation",
+    "chapter": "继承与多态",
+    "point": "动态方法分派",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "创建 Child 对象后调用 show，会输出什么？",
+    "code": "class Parent {\n    void show() { System.out.print(\"P\"); }\n}\nclass Child extends Parent {\n    @Override void show() { System.out.print(\"C\"); }\n}\nParent item = new Child();\nitem.show();",
+    "languageVersion": 21,
+    "answer": "C",
+    "explanation": {
+      "reasoning": "实例方法调用根据对象的运行时类型进行动态分派。item 的声明类型是 Parent，但实际对象是 Child，因此执行 Child.show。",
+      "pitfall": "方法重写看运行时对象；字段访问和静态方法隐藏遵循不同规则。",
+      "takeaway": "区分引用的声明类型与对象的运行时类型。"
+    }
+  },
+  {
+    "id": "J02-002",
+    "stage": "foundation",
+    "chapter": "字符串",
+    "point": "String 不可变性",
+    "type": "output",
+    "difficulty": "基础",
+    "stem": "程序会输出哪段文字？",
+    "code": "String language = \"Java\";\nlanguage.concat(\" 21\");\nSystem.out.println(language);",
+    "languageVersion": 21,
+    "answer": "Java",
+    "explanation": {
+      "reasoning": "String 是不可变对象。concat 会返回新字符串，但结果没有赋回 language，所以原变量仍引用 Java。",
+      "pitfall": "调用返回新对象的方法，不代表原变量会被更新。",
+      "takeaway": "接收并保存 String 操作的返回值，或使用 StringBuilder 构造可变文本。"
+    }
+  },
+  {
+    "id": "J02-003",
+    "stage": "foundation",
+    "chapter": "异常",
+    "point": "运行时异常继承关系",
+    "type": "single",
+    "difficulty": "巩固",
+    "stem": "Integer.parseInt(\"x\") 抛出的 NumberFormatException 可以被哪个 catch 捕获？",
+    "options": [
+      {
+        "id": "A",
+        "text": "只可以由 NumberFormatException 捕获"
+      },
+      {
+        "id": "B",
+        "text": "由 IllegalArgumentException 或 Exception 捕获"
+      },
+      {
+        "id": "C",
+        "text": "只能由 Throwable 捕获"
+      },
+      {
+        "id": "D",
+        "text": "不能被 catch 捕获"
+      }
+    ],
+    "answer": "B",
+    "explanation": {
+      "reasoning": "NumberFormatException 继承自 IllegalArgumentException，后者继承自 RuntimeException，再继承 Exception。因此这两个父类都能捕获它。",
+      "optionAnalysis": {
+        "A": "子类本身可以捕获，但不是唯一类型。",
+        "B": "正确：两个类型都是 NumberFormatException 的父类。",
+        "C": "Throwable 也可以捕获，但并非只能用它。",
+        "D": "运行时异常同样可以使用 catch 捕获。"
+      },
+      "pitfall": "catch 的类型可以是实际异常类的父类。",
+      "takeaway": "通过异常继承树判断 catch 是否匹配。"
+    }
+  },
+  {
+    "id": "J02-004",
+    "stage": "foundation",
+    "chapter": "继承与多态",
+    "point": "字段与方法分派",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "程序按什么顺序输出？",
+    "code": "class Parent {\n    String name = \"P\";\n    String label() { return name; }\n}\nclass Child extends Parent {\n    String name = \"C\";\n    @Override String label() { return name; }\n}\nParent item = new Child();\nSystem.out.print(item.name + item.label());",
+    "languageVersion": 21,
+    "answer": "PC",
+    "explanation": {
+      "reasoning": "字段访问按引用的声明类型解析，所以 item.name 读取 Parent.name 的 P。实例方法动态分派到 Child.label，方法体读取 Child.name 的 C。",
+      "pitfall": "不要把字段访问误认为方法重写。",
+      "takeaway": "字段看引用类型，重写的实例方法看运行时对象类型。"
+    }
+  },
+  {
+    "id": "J02-005",
+    "stage": "foundation",
+    "chapter": "面向对象",
+    "point": "重写与重载",
+    "type": "multiple",
+    "difficulty": "巩固",
+    "stem": "关于方法重载和重写，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "重载通常发生在同一类中，方法名相同而参数列表不同"
+      },
+      {
+        "id": "B",
+        "text": "重写要求子类实例方法符合父类方法的签名与可见性约束"
+      },
+      {
+        "id": "C",
+        "text": "只改变返回类型就能构成重载"
+      },
+      {
+        "id": "D",
+        "text": "private 方法会被子类重写"
+      }
+    ],
+    "answer": [
+      "A",
+      "B"
+    ],
+    "explanation": {
+      "reasoning": "重载通过不同参数列表区分；重写是在子类提供符合规则的实例方法实现。单独改变返回类型不构成重载，private 方法对外不可继承重写。",
+      "optionAnalysis": {
+        "A": "正确：重载依赖参数列表差异。",
+        "B": "正确：重写还需满足返回类型兼容和不能缩小访问权限等规则。",
+        "C": "错误：方法签名不以返回类型区分。",
+        "D": "错误：private 方法不参与子类重写。"
+      },
+      "pitfall": "不要把重载的编译期选择和重写的运行时分派混为一谈。",
+      "takeaway": "重载看参数列表；重写看继承关系和实例方法规则。"
+    }
+  },
+  {
+    "id": "J02-006",
+    "stage": "foundation",
+    "chapter": "异常",
+    "point": "catch 顺序",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "下面的 catch 顺序有什么编译问题？应怎样调整？",
+    "code": "try {\n    readFile();\n} catch (Exception error) {\n    log(error);\n} catch (java.io.IOException error) {\n    recover(error);\n}",
+    "languageVersion": 21,
+    "answer": "IOException 是 Exception 的子类。前面的 Exception 已覆盖它，使后一个 catch 永远无法到达。应先捕获 IOException，再捕获 Exception。",
+    "explanation": {
+      "reasoning": "Java 按 catch 块从上到下匹配。较宽的父类型放在前面会遮蔽其后的子类型 catch，编译器会报告不可达代码。",
+      "pitfall": "catch 多种异常时，不要把父类放在子类前面。",
+      "takeaway": "异常捕获顺序从具体类型到一般类型。"
+    }
+  },
+  {
+    "id": "J02-007",
+    "stage": "foundation",
+    "chapter": "字符串",
+    "point": "StringBuilder 可变性",
+    "type": "output",
+    "difficulty": "基础",
+    "stem": "下面代码输出什么？",
+    "code": "StringBuilder text = new StringBuilder(\"Java\");\ntext.append(21);\nSystem.out.println(text);",
+    "languageVersion": 21,
+    "answer": "Java21",
+    "explanation": {
+      "reasoning": "StringBuilder 是可变字符序列，append 会在同一个对象后追加文本。整数 21 转成字符后接在 Java 后面。",
+      "pitfall": "StringBuilder.append 修改自身；String.concat 返回新 String。",
+      "takeaway": "循环拼接或增量构造文本时可以考虑 StringBuilder。"
+    }
+  },
+  {
+    "id": "J02-008",
+    "stage": "foundation",
+    "chapter": "类与对象",
+    "point": "构造顺序",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "创建 Child 对象时会输出什么？",
+    "code": "class Parent {\n    Parent() { System.out.print(\"P\"); }\n}\nclass Child extends Parent {\n    { System.out.print(\"I\"); }\n    Child() { System.out.print(\"C\"); }\n}\nnew Child();",
+    "languageVersion": 21,
+    "answer": "PIC",
+    "explanation": {
+      "reasoning": "构造子类对象时先完成父类构造并输出 P；父类构造返回后执行子类实例初始化块输出 I；最后执行子类构造器主体输出 C。",
+      "pitfall": "子类实例初始化块不会先于父类构造运行。",
+      "takeaway": "先父类初始化，再子类字段和实例初始化，最后子类构造器主体。"
+    }
+  },
+  {
+    "id": "J02-009",
+    "stage": "foundation",
+    "type": "single",
+    "stem": "创建对象时，实例字段和构造器的初始化顺序通常是什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "先执行字段初始化，再执行构造器主体。"
+      },
+      {
+        "id": "B",
+        "text": "先执行构造器主体，再初始化字段。"
+      },
+      {
+        "id": "C",
+        "text": "字段只会在第一次读取时初始化。"
+      },
+      {
+        "id": "D",
+        "text": "每个构造器都从头重复整个父类初始化过程。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "构造对象时会先完成父类初始化，再按声明顺序初始化本类实例字段，随后执行构造器主体。",
+      "pitfall": "字段初始化表达式也是构造过程的一部分。",
+      "takeaway": "沿继承链逐层从父类到子类跟踪初始化顺序。"
+    },
+    "chapter": "类与对象",
+    "point": "构造、字段与初始化",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-010",
+    "stage": "foundation",
+    "type": "single",
+    "stem": "类中没有显式声明任何构造器时，Java 通常会做什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "提供一个无参默认构造器。"
+      },
+      {
+        "id": "B",
+        "text": "提供一个任意参数的构造器。"
+      },
+      {
+        "id": "C",
+        "text": "禁止创建该类实例。"
+      },
+      {
+        "id": "D",
+        "text": "把所有字段都设为 final。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "未声明构造器时，编译器会提供无参默认构造器。",
+      "pitfall": "只要声明了任意构造器，编译器就不会再自动补无参版本。",
+      "takeaway": "需要无参创建时，要确认类确实有可用的无参构造器。"
+    },
+    "chapter": "类与对象",
+    "point": "构造、字段与初始化",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-011",
+    "stage": "foundation",
+    "type": "multiple",
+    "stem": "关于构造器，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "构造器没有返回类型。"
+      },
+      {
+        "id": "B",
+        "text": "`this(...)` 可以调用同一类的另一个构造器。"
+      },
+      {
+        "id": "C",
+        "text": "构造器可以声明 `static`。"
+      },
+      {
+        "id": "D",
+        "text": "构造器中的 `this(...)` 必须是第一条语句。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "构造器以类名命名且不声明返回类型；this 调用可用于构造器串联，并必须位于首行。",
+      "pitfall": "构造器用于实例初始化，不能声明为 static。",
+      "takeaway": "检查显式构造器调用是否违反首语句限制。"
+    },
+    "chapter": "类与对象",
+    "point": "构造、字段与初始化",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-012",
+    "stage": "foundation",
+    "type": "multiple",
+    "stem": "以下哪些值可作为对象创建后的字段默认值？",
+    "options": [
+      {
+        "id": "A",
+        "text": "int 字段默认为 0。"
+      },
+      {
+        "id": "B",
+        "text": "boolean 字段默认为 false。"
+      },
+      {
+        "id": "C",
+        "text": "对象引用字段默认为空引用 null。"
+      },
+      {
+        "id": "D",
+        "text": "String 字段默认为空字符串。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "字段按类型获得默认值；引用类型默认是 null，String 不例外。",
+      "pitfall": "null 与内容为空的 String 是两种不同状态。",
+      "takeaway": "默认值不会替代业务上明确的初始化逻辑。"
+    },
+    "chapter": "类与对象",
+    "point": "构造、字段与初始化",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-013",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "构造后输出什么？",
+    "code": "class Box { int size = 3; Box() { size = size + 2; } }\nBox box = new Box();\nSystem.out.println(box.size);",
+    "languageVersion": 21,
+    "answer": "5",
+    "explanation": {
+      "reasoning": "字段先初始化为 3，构造器再将其加 2。",
+      "pitfall": "字段初始化不会跳过构造器主体。",
+      "takeaway": "按初始化顺序逐步更新字段值。"
+    },
+    "chapter": "类与对象",
+    "point": "构造、字段与初始化"
+  },
+  {
+    "id": "J02-014",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "两行输出是什么？",
+    "code": "class Counter { static int total; int value; Counter() { total++; value = total; } }\nCounter a = new Counter();\nCounter b = new Counter();\nSystem.out.println(a.value + \":\" + b.value);\nSystem.out.println(Counter.total);",
+    "languageVersion": 21,
+    "answer": "1:2\n2",
+    "explanation": {
+      "reasoning": "total 是所有对象共享的静态字段；两次构造分别令它变为 1 和 2。",
+      "pitfall": "实例字段 value 则分别保存在不同对象中。",
+      "takeaway": "区分 static 共享状态和实例状态。"
+    },
+    "chapter": "类与对象",
+    "point": "构造、字段与初始化"
+  },
+  {
+    "id": "J02-015",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "最终输出什么？",
+    "code": "class Label { String text = \"A\"; Label() { this(\"B\"); text += \"C\"; } Label(String value) { text = value; } }\nSystem.out.println(new Label().text);",
+    "languageVersion": 21,
+    "answer": "BC",
+    "explanation": {
+      "reasoning": "无参构造器先委托到带参构造器，将 text 设为 B；随后追加 C。",
+      "pitfall": "this(...) 完成后，当前构造器还会继续执行后续语句。",
+      "takeaway": "构造器链的调用顺序从被委托构造器返回后继续。"
+    },
+    "chapter": "类与对象",
+    "point": "构造、字段与初始化"
+  },
+  {
+    "id": "J02-016",
+    "stage": "foundation",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么这段类在没有无参构造器时创建失败？如何让两种创建方式都工作？",
+    "code": "class User { User(String name) {} }\nUser user = new User();",
+    "languageVersion": 21,
+    "answer": "为 User 添加无参构造器，或在创建处传入 String 参数；若都需要则两个构造器都声明。",
+    "explanation": {
+      "reasoning": "显式声明 User(String) 后，编译器不再自动生成无参构造器。",
+      "pitfall": "默认构造器仅在完全没有声明构造器时出现。",
+      "takeaway": "新增构造器后检查旧调用点的兼容性。"
+    },
+    "chapter": "类与对象",
+    "point": "构造、字段与初始化"
+  },
+  {
+    "id": "J02-017",
+    "stage": "foundation",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "这里的字段与参数同名，怎样保证构造器能给字段赋值？",
+    "code": "class User {\n    String name;\n    User(String name) { name = name; }\n}",
+    "languageVersion": 21,
+    "answer": "写成 `this.name = name;`。",
+    "explanation": {
+      "reasoning": "未限定的 name 在构造器中指向参数，`name = name` 只给参数自身赋值。",
+      "pitfall": "形参与字段同名时，作用域会遮蔽字段。",
+      "takeaway": "使用 this 明确指向当前对象字段。"
+    },
+    "chapter": "类与对象",
+    "point": "构造、字段与初始化"
+  },
+  {
+    "id": "J02-018",
+    "stage": "foundation",
+    "type": "single",
+    "stem": "父类引用指向子类对象，调用一个已重写的实例方法时，执行哪个实现？",
+    "options": [
+      {
+        "id": "A",
+        "text": "运行时对象所属子类的重写实现。"
+      },
+      {
+        "id": "B",
+        "text": "引用变量声明类型对应的父类实现。"
+      },
+      {
+        "id": "C",
+        "text": "由变量名首字母决定。"
+      },
+      {
+        "id": "D",
+        "text": "编译器随机选择一个实现。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "实例方法重写采用动态分派，执行版本由运行时对象类型决定。",
+      "pitfall": "字段访问和静态方法隐藏遵循不同规则。",
+      "takeaway": "把变量的静态类型与对象的实际类型分开分析。"
+    },
+    "chapter": "继承与多态",
+    "point": "重写与动态分派",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-019",
+    "stage": "foundation",
+    "type": "single",
+    "stem": "子类重写父类方法时，访问权限可以怎样变化？",
+    "options": [
+      {
+        "id": "A",
+        "text": "可以保持或放宽，不能变得更严格。"
+      },
+      {
+        "id": "B",
+        "text": "只能变得更严格。"
+      },
+      {
+        "id": "C",
+        "text": "必须改成 private。"
+      },
+      {
+        "id": "D",
+        "text": "可以任意变化。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "重写方法不能缩小父类方法的可访问范围。",
+      "pitfall": "返回类型和异常声明也受重写规则限制。",
+      "takeaway": "使用 `@Override` 让编译器验证重写意图。"
+    },
+    "chapter": "继承与多态",
+    "point": "重写与动态分派",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-020",
+    "stage": "foundation",
+    "type": "multiple",
+    "stem": "哪些说法符合方法重写规则？",
+    "options": [
+      {
+        "id": "A",
+        "text": "子类实例方法可以重写可访问的父类实例方法。"
+      },
+      {
+        "id": "B",
+        "text": "`final` 实例方法不能被子类重写。"
+      },
+      {
+        "id": "C",
+        "text": "静态方法通过动态分派被重写。"
+      },
+      {
+        "id": "D",
+        "text": "子类重写方法不能声明比父类更宽的受检异常。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "final 禁止继续重写；受检异常不能扩大父类方法承诺的范围。",
+      "pitfall": "静态方法隐藏而非实例重写，不参与动态分派。",
+      "takeaway": "使用 Override 注解并检查异常与访问权限。"
+    },
+    "chapter": "继承与多态",
+    "point": "重写与动态分派",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-021",
+    "stage": "foundation",
+    "type": "multiple",
+    "stem": "以下关于多态的说法哪些正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "父类引用可以指向其子类实例。"
+      },
+      {
+        "id": "B",
+        "text": "编译期会检查引用静态类型是否声明了所调用方法。"
+      },
+      {
+        "id": "C",
+        "text": "字段访问也会像实例方法一样动态分派。"
+      },
+      {
+        "id": "D",
+        "text": "向下转型在实际对象不匹配时会抛 ClassCastException。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "引用静态类型决定编译期可见成员；实例方法的实现再由运行时类型决定。",
+      "pitfall": "字段访问依据表达式的静态类型，不进行方法式动态分派。",
+      "takeaway": "必要时使用 instanceof 模式匹配或显式类型检查。"
+    },
+    "chapter": "继承与多态",
+    "point": "重写与动态分派",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-022",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "输出哪一个方法结果？",
+    "code": "class Parent { String name() { return \"P\"; } }\nclass Child extends Parent { @Override String name() { return \"C\"; } }\nParent item = new Child();\nSystem.out.println(item.name());",
+    "languageVersion": 21,
+    "answer": "C",
+    "explanation": {
+      "reasoning": "调用的是实例方法；运行时对象为 Child，因此执行重写实现。",
+      "pitfall": "Parent 类型变量不意味着对象实际类型是 Parent。",
+      "takeaway": "跟踪方法调用时关注对象运行时类型。"
+    },
+    "chapter": "继承与多态",
+    "point": "重写与动态分派"
+  },
+  {
+    "id": "J02-023",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "打印结果是什么？",
+    "code": "class Parent { int value = 1; int get() { return value; } }\nclass Child extends Parent { int value = 2; @Override int get() { return value; } }\nParent p = new Child();\nSystem.out.println(p.value + p.get());",
+    "languageVersion": 21,
+    "answer": "3",
+    "explanation": {
+      "reasoning": "字段访问 `p.value` 按引用静态类型取父类字段 1；方法调用动态分派到子类返回 2。",
+      "pitfall": "字段隐藏和方法重写是两种不同机制。",
+      "takeaway": "同一表达式中分别判断字段访问与实例方法调用。"
+    },
+    "chapter": "继承与多态",
+    "point": "重写与动态分派"
+  },
+  {
+    "id": "J02-024",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "程序最后输出什么？",
+    "code": "class A { static String kind() { return \"A\"; } }\nclass B extends A { static String kind() { return \"B\"; } }\nA ref = new B();\nSystem.out.println(ref.kind());",
+    "languageVersion": 21,
+    "answer": "A",
+    "explanation": {
+      "reasoning": "静态方法按引用表达式的编译期类型解析，`ref` 的声明类型是 A。",
+      "pitfall": "不建议通过实例引用调用静态方法；直接写类名更清晰。",
+      "takeaway": "static 方法会隐藏，不按运行时对象动态分派。"
+    },
+    "chapter": "继承与多态",
+    "point": "重写与动态分派"
+  },
+  {
+    "id": "J02-025",
+    "stage": "foundation",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么不能用 `@Override` 标记这个方法？修正哪个签名？",
+    "code": "class Base { void save(Object value) {} }\nclass Child extends Base { @Override void save(String value) {} }",
+    "languageVersion": 21,
+    "answer": "若要重写，应改为 `void save(Object value)`；若保留 String 参数，它是重载，应移除 Override。",
+    "explanation": {
+      "reasoning": "参数列表不同，因此 save(String) 没有重写 save(Object)。",
+      "pitfall": "返回类型相同也不能弥补参数签名不同。",
+      "takeaway": "重写要求匹配方法签名，并可有合法协变返回类型。"
+    },
+    "chapter": "继承与多态",
+    "point": "重写与动态分派"
+  },
+  {
+    "id": "J02-026",
+    "stage": "foundation",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么这个向下转型会在运行时失败？怎样安全调用子类方法？",
+    "code": "class Animal {}\nclass Cat extends Animal { void meow() {} }\nAnimal pet = new Animal();\n((Cat) pet).meow();",
+    "languageVersion": 21,
+    "answer": "先确认 `pet instanceof Cat` 后再转型，或将 pet 初始化为 Cat 对象。",
+    "explanation": {
+      "reasoning": "pet 实际指向 Animal 实例，不是 Cat 实例。",
+      "pitfall": "编译器允许相关类之间显式向下转型，但无法保证运行时对象匹配。",
+      "takeaway": "运行时类型检查可以避免不安全转型。"
+    },
+    "chapter": "继承与多态",
+    "point": "重写与动态分派"
+  },
+  {
+    "id": "J02-027",
+    "stage": "foundation",
+    "type": "single",
+    "stem": "接口中的普通实例方法默认具有什么访问级别？",
+    "options": [
+      {
+        "id": "A",
+        "text": "public。"
+      },
+      {
+        "id": "B",
+        "text": "private。"
+      },
+      {
+        "id": "C",
+        "text": "protected。"
+      },
+      {
+        "id": "D",
+        "text": "仅对同包可见。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "接口的普通抽象实例方法是 public；实现时不能降低可见性。",
+      "pitfall": "private 接口方法是 Java 9 以后用于接口内部复用的另一种语法。",
+      "takeaway": "实现接口方法时保留 public。"
+    },
+    "chapter": "接口",
+    "point": "抽象契约与默认方法",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-028",
+    "stage": "foundation",
+    "type": "single",
+    "stem": "一个类实现接口时，对接口抽象方法通常需要做什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "提供满足契约的 public 实现，或将类声明为 abstract。"
+      },
+      {
+        "id": "B",
+        "text": "把方法改成 private。"
+      },
+      {
+        "id": "C",
+        "text": "只需在构造器中调用一次。"
+      },
+      {
+        "id": "D",
+        "text": "接口方法会自动变成字段。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "非抽象类必须实现全部继承的抽象方法。",
+      "pitfall": "接口方法的公开契约不能通过较低权限实现。",
+      "takeaway": "编译错误通常会指出尚未实现的方法。"
+    },
+    "chapter": "接口",
+    "point": "抽象契约与默认方法",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-029",
+    "stage": "foundation",
+    "type": "multiple",
+    "stem": "关于接口的说法哪些正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "一个类可以实现多个接口。"
+      },
+      {
+        "id": "B",
+        "text": "接口可以声明 default 实例方法。"
+      },
+      {
+        "id": "C",
+        "text": "接口字段默认是 public static final。"
+      },
+      {
+        "id": "D",
+        "text": "接口可以直接 `new Interface()` 创建实例。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "接口支持多实现契约；字段是常量，default 方法提供默认实例行为。",
+      "pitfall": "接口本身不能直接实例化。",
+      "takeaway": "需要对象时创建实现类或使用匿名实现。"
+    },
+    "chapter": "接口",
+    "point": "抽象契约与默认方法",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-030",
+    "stage": "foundation",
+    "type": "multiple",
+    "stem": "类实现的两个接口提供了同签名且互不相关的 default 方法，哪些做法有效？",
+    "options": [
+      {
+        "id": "A",
+        "text": "实现类重写该方法以消除冲突。"
+      },
+      {
+        "id": "B",
+        "text": "实现类可用 `InterfaceA.super.method()` 调用其中一个默认实现。"
+      },
+      {
+        "id": "C",
+        "text": "编译器会随机选一个接口。"
+      },
+      {
+        "id": "D",
+        "text": "把其中一个接口改成父类即可自动决定。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B"
+    ],
+    "explanation": {
+      "reasoning": "类必须显式解决两个互不相关 default 实现之间的冲突。",
+      "pitfall": "实现时可以分别委托到明确的接口默认实现。",
+      "takeaway": "冲突不能依赖声明顺序或编译器猜测。"
+    },
+    "chapter": "接口",
+    "point": "抽象契约与默认方法",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-031",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "输出结果是什么？",
+    "code": "interface Greeter { default String greet() { return \"hello\"; } }\nclass Person implements Greeter {}\nSystem.out.println(new Person().greet());",
+    "languageVersion": 21,
+    "answer": "hello",
+    "explanation": {
+      "reasoning": "Person 没有重写 greet，因此使用接口提供的 default 实现。",
+      "pitfall": "default 是实例方法，不是静态方法。",
+      "takeaway": "默认方法帮助接口演进，同时仍可由实现类覆盖。"
+    },
+    "chapter": "接口",
+    "point": "抽象契约与默认方法"
+  },
+  {
+    "id": "J02-032",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "程序会打印什么？",
+    "code": "interface A { default String name() { return \"A\"; } }\nclass B implements A { @Override public String name() { return A.super.name() + \"B\"; } }\nSystem.out.println(new B().name());",
+    "languageVersion": 21,
+    "answer": "AB",
+    "explanation": {
+      "reasoning": "B 的实现显式调用 A 的默认方法并追加 B。",
+      "pitfall": "`A.super` 只能在合适的实现上下文中调用直接相关接口默认方法。",
+      "takeaway": "接口默认方法可被组合复用，但冲突需要显式处理。"
+    },
+    "chapter": "接口",
+    "point": "抽象契约与默认方法"
+  },
+  {
+    "id": "J02-033",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "这两个常量的值是什么？",
+    "code": "interface Limits { int MAX = 8; }\nSystem.out.println(Limits.MAX);",
+    "languageVersion": 21,
+    "answer": "8",
+    "explanation": {
+      "reasoning": "接口字段隐式为 public static final 常量，可通过接口名访问。",
+      "pitfall": "接口字段不是每个实现对象各自保存的实例字段。",
+      "takeaway": "共享常量应使用类名或接口名限定访问。"
+    },
+    "chapter": "接口",
+    "point": "抽象契约与默认方法"
+  },
+  {
+    "id": "J02-034",
+    "stage": "foundation",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么实现类无法编译？",
+    "code": "interface Store { void save(); }\nclass FileStore implements Store { void save() {} }",
+    "languageVersion": 21,
+    "answer": "将方法声明为 `public void save() {}`，或把 FileStore 声明为 abstract。",
+    "explanation": {
+      "reasoning": "接口方法是 public，实现方法不能降低可见性。",
+      "pitfall": "包内默认可见不满足接口的公开契约。",
+      "takeaway": "实现接口方法时检查 public 修饰符。"
+    },
+    "chapter": "接口",
+    "point": "抽象契约与默认方法"
+  },
+  {
+    "id": "J02-035",
+    "stage": "foundation",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "两个 default 方法冲突时如何明确选择实现？",
+    "code": "interface Left { default void run() {} }\ninterface Right { default void run() {} }\nclass Task implements Left, Right {}",
+    "languageVersion": 21,
+    "answer": "在 Task 中重写 `public void run()`，并在需要时调用 `Left.super.run()` 或 `Right.super.run()`。",
+    "explanation": {
+      "reasoning": "两个不相关接口都提供 run 默认实现，类没有唯一可继承实现。",
+      "pitfall": "冲突由具体类解决，而不是根据 implements 顺序选择。",
+      "takeaway": "多接口默认方法重名时，显式覆盖并表达选择。"
+    },
+    "chapter": "接口",
+    "point": "抽象契约与默认方法"
+  },
+  {
+    "id": "J02-036",
+    "stage": "foundation",
+    "type": "single",
+    "stem": "`private` 实例字段最直接的设计目的是什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "限制外部直接访问，并由类自身维护对象状态。"
+      },
+      {
+        "id": "B",
+        "text": "自动让字段线程安全。"
+      },
+      {
+        "id": "C",
+        "text": "阻止对象被垃圾回收。"
+      },
+      {
+        "id": "D",
+        "text": "让字段在所有实例间共享。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "private 把直接访问限制在类内部，便于保护不变量。",
+      "pitfall": "访问控制本身不提供同步，也不会改变字段是否静态。",
+      "takeaway": "把验证规则放在负责状态的类中。"
+    },
+    "chapter": "面向对象",
+    "point": "封装、static 与 final",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-037",
+    "stage": "foundation",
+    "type": "single",
+    "stem": "`static` 字段通常属于谁？",
+    "options": [
+      {
+        "id": "A",
+        "text": "类本身，所有实例共享一份。"
+      },
+      {
+        "id": "B",
+        "text": "每次方法调用独有一份。"
+      },
+      {
+        "id": "C",
+        "text": "每个对象各自独有一份。"
+      },
+      {
+        "id": "D",
+        "text": "只有子类对象拥有。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "静态字段与类关联，而非每个实例单独持有。",
+      "pitfall": "static 不意味着值不可变；是否可变由字段类型和修饰符另定。",
+      "takeaway": "共享可变 static 状态需要额外考虑并发与生命周期。"
+    },
+    "chapter": "面向对象",
+    "point": "封装、static 与 final",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-038",
+    "stage": "foundation",
+    "type": "multiple",
+    "stem": "哪些声明表示不能被重新赋值或重写？",
+    "options": [
+      {
+        "id": "A",
+        "text": "局部变量 `final int n` 在赋值后不能再赋值。"
+      },
+      {
+        "id": "B",
+        "text": "`final` 实例方法不能被子类重写。"
+      },
+      {
+        "id": "C",
+        "text": "`final` 类不能被继承。"
+      },
+      {
+        "id": "D",
+        "text": "final 引用保证所指对象的字段也不可变。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "final 可限制变量重新赋值、方法重写和类继承。",
+      "pitfall": "final 引用限制引用本身重新指向，不自动冻结对象状态。",
+      "takeaway": "分清引用不可变与引用目标不可变。"
+    },
+    "chapter": "面向对象",
+    "point": "封装、static 与 final",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-039",
+    "stage": "foundation",
+    "type": "multiple",
+    "stem": "关于静态上下文和实例成员，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "static 方法没有隐式的当前对象 this。"
+      },
+      {
+        "id": "B",
+        "text": "static 方法可以通过对象引用调用实例字段。"
+      },
+      {
+        "id": "C",
+        "text": "实例方法可以直接访问同类 static 字段。"
+      },
+      {
+        "id": "D",
+        "text": "static 字段的值在每个对象之间独立保存。"
+      }
+    ],
+    "answer": [
+      "A",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "静态上下文没有当前实例；实例方法则可访问类成员和实例成员。",
+      "pitfall": "访问实例字段必须有明确对象。",
+      "takeaway": "编译器报非静态成员错误时，先确认是否缺少对象引用。"
+    },
+    "chapter": "面向对象",
+    "point": "封装、static 与 final",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-040",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "执行结果是什么？",
+    "code": "class Meter { static int created; Meter() { created++; } }\nnew Meter(); new Meter();\nSystem.out.println(Meter.created);",
+    "languageVersion": 21,
+    "answer": "2",
+    "explanation": {
+      "reasoning": "两次构造都递增同一个类级别字段。",
+      "pitfall": "静态字段不会因创建新实例而重置。",
+      "takeaway": "统计对象数量时，static 字段常用于共享计数。"
+    },
+    "chapter": "面向对象",
+    "point": "封装、static 与 final"
+  },
+  {
+    "id": "J02-041",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "程序输出什么？",
+    "code": "final int[] values = {1, 2};\nvalues[0] = 7;\nSystem.out.println(values[0]);",
+    "languageVersion": 21,
+    "answer": "7",
+    "explanation": {
+      "reasoning": "final 限制 values 不能改为引用另一个数组，但数组元素仍可修改。",
+      "pitfall": "final 引用不等于不可变对象。",
+      "takeaway": "深度不可变需要不可变对象设计，而不只是 final 引用。"
+    },
+    "chapter": "面向对象",
+    "point": "封装、static 与 final"
+  },
+  {
+    "id": "J02-042",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "下列代码打印什么？",
+    "code": "class Config { static final int PORT = 8080; }\nSystem.out.println(Config.PORT);",
+    "languageVersion": 21,
+    "answer": "8080",
+    "explanation": {
+      "reasoning": "静态 final 字段保存共享常量值，可通过类名访问。",
+      "pitfall": "常量命名惯例使用大写字母和下划线。",
+      "takeaway": "final 用于不应重新赋值的常量或引用。"
+    },
+    "chapter": "面向对象",
+    "point": "封装、static 与 final"
+  },
+  {
+    "id": "J02-043",
+    "stage": "foundation",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么 static 方法中访问 this 会编译失败？",
+    "code": "class Session {\n    static void show() { System.out.println(this); }\n}",
+    "languageVersion": 21,
+    "answer": "删除 static，将 show 声明为实例方法；或去掉 this 并明确需要访问的静态成员。",
+    "explanation": {
+      "reasoning": "static 方法调用没有当前对象，因此不存在 this。",
+      "pitfall": "不要只为了访问实例成员而把方法误标为 static。",
+      "takeaway": "判断方法是否属于对象行为，再决定是否需要实例上下文。"
+    },
+    "chapter": "面向对象",
+    "point": "封装、static 与 final"
+  },
+  {
+    "id": "J02-044",
+    "stage": "foundation",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "这个 final 数组为什么不能重新赋值但可以改元素？如何只暴露只读视图？",
+    "code": "final List<String> names = new ArrayList<>();\nnames.add(\"Ada\");",
+    "languageVersion": 21,
+    "answer": "final 仅禁止 names 重新指向其他 List；可用不可变副本或 `List.copyOf(names)` 暴露只读列表。",
+    "explanation": {
+      "reasoning": "集合引用仍指向可变对象，final 不阻止 add。",
+      "pitfall": "调用方持有原始可变列表时，不可变视图和不可变副本也有区别。",
+      "takeaway": "保护集合状态时同时控制引用和底层对象的可变性。"
+    },
+    "chapter": "面向对象",
+    "point": "封装、static 与 final"
+  },
+  {
+    "id": "J02-045",
+    "stage": "foundation",
+    "type": "single",
+    "stem": "重写 `equals` 时通常还必须一起重写什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "hashCode。"
+      },
+      {
+        "id": "B",
+        "text": "toString。"
+      },
+      {
+        "id": "C",
+        "text": "clone。"
+      },
+      {
+        "id": "D",
+        "text": "finalize。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "相等对象必须拥有相同 hashCode，否则哈希集合可能无法正确查找。",
+      "pitfall": "反过来，相同 hashCode 并不保证 equals 为 true。",
+      "takeaway": "定义值相等时同步维护 equals 和 hashCode 契约。"
+    },
+    "chapter": "字符串",
+    "point": "相等性与不可变对象",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-046",
+    "stage": "foundation",
+    "type": "single",
+    "stem": "调用 `String.substring` 会如何影响原字符串？",
+    "options": [
+      {
+        "id": "A",
+        "text": "返回新字符串结果，原 String 保持不变。"
+      },
+      {
+        "id": "B",
+        "text": "原 String 从指定位置被裁掉。"
+      },
+      {
+        "id": "C",
+        "text": "清空原字符串并复用对象。"
+      },
+      {
+        "id": "D",
+        "text": "只会返回字符数组。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "String 不可变，substring 产生表示所选内容的 String 结果。",
+      "pitfall": "忽略返回值时，转换结果不会保存在原变量中。",
+      "takeaway": "把返回值赋回变量或交给下一个操作。"
+    },
+    "chapter": "字符串",
+    "point": "相等性与不可变对象",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-047",
+    "stage": "foundation",
+    "type": "multiple",
+    "stem": "以下哪些符合 `equals` / `hashCode` 契约？",
+    "options": [
+      {
+        "id": "A",
+        "text": "若 a.equals(b) 为 true，则两者 hashCode 必须相等。"
+      },
+      {
+        "id": "B",
+        "text": "两个不同对象可以拥有相同 hashCode。"
+      },
+      {
+        "id": "C",
+        "text": "hashCode 相等就一定 equals 为 true。"
+      },
+      {
+        "id": "D",
+        "text": "equals 应满足对称性。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "哈希允许冲突；equals 对称且相等对象必须产生相同哈希值。",
+      "pitfall": "哈希值只是筛选线索，不是唯一对象标识。",
+      "takeaway": "自定义值对象时使用一致的字段集合实现两种方法。"
+    },
+    "chapter": "字符串",
+    "point": "相等性与不可变对象",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-048",
+    "stage": "foundation",
+    "type": "multiple",
+    "stem": "为什么不应把可变字段纳入哈希键后再修改它？",
+    "options": [
+      {
+        "id": "A",
+        "text": "哈希桶位置依赖插入时的哈希值。"
+      },
+      {
+        "id": "B",
+        "text": "修改后再查找可能无法按新哈希找到该键。"
+      },
+      {
+        "id": "C",
+        "text": "HashMap 会自动把旧键移动到正确桶。"
+      },
+      {
+        "id": "D",
+        "text": "适合作键的对象通常应保持参与相等比较的状态稳定。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "键放入哈希表后若其哈希相关状态变化，桶索引与当前 hashCode 不一致。",
+      "pitfall": "HashMap 不会侦测键对象字段并自动重排。",
+      "takeaway": "使用不可变键或确保作为键期间不改变相等性状态。"
+    },
+    "chapter": "字符串",
+    "point": "相等性与不可变对象",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-049",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "输出什么？",
+    "code": "String value = \"study\";\nvalue.replace(\"u\", \"a\");\nSystem.out.println(value);",
+    "languageVersion": 21,
+    "answer": "study",
+    "explanation": {
+      "reasoning": "replace 返回新 String，但返回值未接收，value 仍是 study。",
+      "pitfall": "不可变字符串操作不会原地改写变量所指对象。",
+      "takeaway": "需要变换结果时保存方法返回值。"
+    },
+    "chapter": "字符串",
+    "point": "相等性与不可变对象"
+  },
+  {
+    "id": "J02-050",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "两个判断依次输出什么？",
+    "code": "String a = \"cat\";\nString b = \"c\" + \"at\";\nSystem.out.println(a == b);\nSystem.out.println(a.equals(b));",
+    "languageVersion": 21,
+    "answer": "true\ntrue",
+    "explanation": {
+      "reasoning": "这两个常量表达式在编译期可折叠为相同字符串常量；equals 也比较相同内容。",
+      "pitfall": "常量池行为不应成为比较字符串内容的写法依据。",
+      "takeaway": "业务语义要比较文本内容时始终使用 equals。"
+    },
+    "chapter": "字符串",
+    "point": "相等性与不可变对象"
+  },
+  {
+    "id": "J02-051",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "这两个对象是否相等？",
+    "code": "record Point(int x, int y) {}\nPoint p = new Point(2, 3);\nPoint q = new Point(2, 3);\nSystem.out.println(p.equals(q));",
+    "languageVersion": 21,
+    "answer": "true",
+    "explanation": {
+      "reasoning": "record 自动生成基于组件值的 equals 实现。",
+      "pitfall": "record 的组件引用本身仍可能指向可变对象。",
+      "takeaway": "record 适合表达以数据为中心的浅层值类型。"
+    },
+    "chapter": "字符串",
+    "point": "相等性与不可变对象"
+  },
+  {
+    "id": "J02-052",
+    "stage": "foundation",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么这个类放进 HashSet 后无法按预期去重？",
+    "code": "class Key { int id; public boolean equals(Object o) { return o instanceof Key k && id == k.id; } }",
+    "languageVersion": 21,
+    "answer": "同时重写 hashCode，并基于相同的 id 字段计算哈希值。",
+    "explanation": {
+      "reasoning": "equals 认为相同 id 相等，但继承的 Object.hashCode 可能不同。",
+      "pitfall": "HashSet 先用 hashCode 定位，再用 equals 比较。",
+      "takeaway": "相等性规则与哈希计算必须使用一致状态。"
+    },
+    "chapter": "字符串",
+    "point": "相等性与不可变对象"
+  },
+  {
+    "id": "J02-053",
+    "stage": "foundation",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么小写结果没有被打印？",
+    "code": "String text = \"JAVA\";\ntext.toLowerCase();\nSystem.out.println(text);",
+    "languageVersion": 21,
+    "answer": "将返回值保存：`text = text.toLowerCase();`。",
+    "explanation": {
+      "reasoning": "String 不可变，toLowerCase 不会改写原内容。",
+      "pitfall": "转换方法返回新值；忽略返回值会丢失结果。",
+      "takeaway": "值对象的转换应显式接收返回对象。"
+    },
+    "chapter": "字符串",
+    "point": "相等性与不可变对象"
+  },
+  {
+    "id": "J02-054",
+    "stage": "foundation",
+    "type": "single",
+    "stem": "`finally` 块通常何时执行？",
+    "options": [
+      {
+        "id": "A",
+        "text": "离开 try/catch 控制流时通常执行，包括发生异常的情况。"
+      },
+      {
+        "id": "B",
+        "text": "只有 try 正常结束时执行。"
+      },
+      {
+        "id": "C",
+        "text": "只有 catch 捕获异常后执行。"
+      },
+      {
+        "id": "D",
+        "text": "只在 JVM 正常退出时执行。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "finally 常用于清理，在离开 try/catch 时运行。",
+      "pitfall": "调用 System.exit 或进程突然终止等情况可能绕过 finally。",
+      "takeaway": "需要可靠关闭资源时优先考虑 try-with-resources。"
+    },
+    "chapter": "异常",
+    "point": "异常传播与资源关闭",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-055",
+    "stage": "foundation",
+    "type": "single",
+    "stem": "try-with-resources 要求资源类型通常满足什么条件？",
+    "options": [
+      {
+        "id": "A",
+        "text": "实现 AutoCloseable。"
+      },
+      {
+        "id": "B",
+        "text": "实现 Serializable。"
+      },
+      {
+        "id": "C",
+        "text": "必须继承 Thread。"
+      },
+      {
+        "id": "D",
+        "text": "必须是 static 字段。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "编译器会在适当时机调用资源的 close 方法，资源需实现 AutoCloseable。",
+      "pitfall": "Closeable 是其子接口，常见 IO 类型也支持该机制。",
+      "takeaway": "用 try-with-resources 表达明确的资源所有权边界。"
+    },
+    "chapter": "异常",
+    "point": "异常传播与资源关闭",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-056",
+    "stage": "foundation",
+    "type": "multiple",
+    "stem": "关于受检异常，哪些描述正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "调用可能抛出受检异常的方法时需捕获或声明。"
+      },
+      {
+        "id": "B",
+        "text": "RuntimeException 的子类通常属于非受检异常。"
+      },
+      {
+        "id": "C",
+        "text": "Error 通常要求每个调用点都捕获。"
+      },
+      {
+        "id": "D",
+        "text": "catch 子类异常后，再写父类异常 catch 会不可达。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "受检异常由编译器检查；非受检异常通常是 RuntimeException 或 Error 的子类。",
+      "pitfall": "先捕获更具体类型，否则其后的父类 catch 可能不可达。",
+      "takeaway": "只捕获能够处理或转换的异常，避免空 catch。"
+    },
+    "chapter": "异常",
+    "point": "异常传播与资源关闭",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-057",
+    "stage": "foundation",
+    "type": "multiple",
+    "stem": "关于 try-with-resources，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "资源按声明的逆序关闭。"
+      },
+      {
+        "id": "B",
+        "text": "即使 try 块抛异常，已创建资源也会尝试关闭。"
+      },
+      {
+        "id": "C",
+        "text": "必须手动在 finally 中再次调用 close。"
+      },
+      {
+        "id": "D",
+        "text": "多个资源可在资源头中依次声明。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "资源会自动关闭，关闭顺序与初始化顺序相反。",
+      "pitfall": "通常不要重复手动 close，否则可能重复释放。",
+      "takeaway": "声明资源后让语言结构承担正常清理责任。"
+    },
+    "chapter": "异常",
+    "point": "异常传播与资源关闭",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-058",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "最后输出什么？",
+    "code": "try { System.out.print(\"T\"); } finally { System.out.print(\"F\"); }",
+    "languageVersion": 21,
+    "answer": "TF",
+    "explanation": {
+      "reasoning": "try 主体先打印 T，随后 finally 打印 F。",
+      "pitfall": "finally 不是在 try 前执行。",
+      "takeaway": "按实际控制流顺序追踪输出与清理。"
+    },
+    "chapter": "异常",
+    "point": "异常传播与资源关闭"
+  },
+  {
+    "id": "J02-059",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "方法返回值是什么？",
+    "code": "static int value() { try { return 1; } finally { System.out.print(\"F\"); } }\nSystem.out.println(\"R\" + value());",
+    "languageVersion": 21,
+    "answer": "FR1",
+    "explanation": {
+      "reasoning": "调用 value 时先在 finally 打印 F，随后返回 1；外层打印 R1。",
+      "pitfall": "finally 中若再执行 return 会覆盖先前返回值，通常应避免。",
+      "takeaway": "finally 用于清理，不要在其中改变控制流结果。"
+    },
+    "chapter": "异常",
+    "point": "异常传播与资源关闭"
+  },
+  {
+    "id": "J02-060",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "资源关闭前后会打印什么？",
+    "code": "class Tracked extends java.io.StringReader { boolean closed; Tracked() { super(\"x\"); } public void close() { closed = true; } }\nTracked in = new Tracked();\ntry (in) { System.out.println((char) in.read()); }\nSystem.out.println(in.closed);",
+    "languageVersion": 21,
+    "answer": "x\ntrue",
+    "explanation": {
+      "reasoning": "StringReader 读取 x；离开 try-with-resources 后自动调用覆盖的 close，将 closed 设为 true。",
+      "pitfall": "try-with-resources 会在资源初始化成功后负责关闭。",
+      "takeaway": "用可观察的 close 状态验证资源清理时序。"
+    },
+    "chapter": "异常",
+    "point": "异常传播与资源关闭"
+  },
+  {
+    "id": "J02-061",
+    "stage": "foundation",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么第二个 catch 不可达？怎样调整顺序？",
+    "code": "try { work(); } catch (Exception e) { recover(); } catch (IOException e) { retry(); }",
+    "languageVersion": 21,
+    "answer": "将 `catch (IOException e)` 放到 `catch (Exception e)` 前。",
+    "explanation": {
+      "reasoning": "IOException 是 Exception 的子类，前一个 catch 已能捕获它。",
+      "pitfall": "catch 应从更具体的异常类型排到更一般的类型。",
+      "takeaway": "阅读异常继承关系来判断 catch 的覆盖范围。"
+    },
+    "chapter": "异常",
+    "point": "异常传播与资源关闭"
+  },
+  {
+    "id": "J02-062",
+    "stage": "foundation",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "怎样保证 reader 在读取成功或抛异常后都会关闭？",
+    "code": "var reader = new java.io.FileReader(path);\nint first = reader.read();",
+    "languageVersion": 21,
+    "answer": "将资源放入 `try (var reader = new java.io.FileReader(path)) { ... }`。",
+    "explanation": {
+      "reasoning": "当前代码没有关闭 reader，发生异常时更无法可靠清理。",
+      "pitfall": "FileReader 实现 AutoCloseable。",
+      "takeaway": "把资源声明到 try-with-resources 头中。"
+    },
+    "chapter": "异常",
+    "point": "异常传播与资源关闭"
+  },
+  {
+    "id": "J02-063",
+    "stage": "foundation",
+    "type": "single",
+    "stem": "抽象类最适合用来表达什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "含有共同状态或实现，并要求子类补全部分行为的基类。"
+      },
+      {
+        "id": "B",
+        "text": "完全不能声明字段和构造器的类型。"
+      },
+      {
+        "id": "C",
+        "text": "可以直接创建实例的工具类。"
+      },
+      {
+        "id": "D",
+        "text": "只能由一个类实现的接口别名。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "抽象类可组合字段、构造器、具体方法和抽象方法，但不能直接实例化。",
+      "pitfall": "抽象类也可以没有抽象方法，关键在于类型不能被直接构造。",
+      "takeaway": "为共享实现建立父类时，避免把所有行为都强塞给子类。"
+    },
+    "chapter": "继承与多态",
+    "point": "抽象类与协变返回",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-064",
+    "stage": "foundation",
+    "type": "single",
+    "stem": "子类重写方法可以把父类返回类型改成什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "引用类型的合法子类型（协变返回类型）。"
+      },
+      {
+        "id": "B",
+        "text": "任意不相关类型。"
+      },
+      {
+        "id": "C",
+        "text": "只能改成 void。"
+      },
+      {
+        "id": "D",
+        "text": "返回类型必须比父类更宽。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "引用类型返回值允许使用协变类型，重写实现返回父类返回类型的子类型。",
+      "pitfall": "基本类型返回值不能这样协变。",
+      "takeaway": "确认返回类型可赋给父类方法声明的返回类型。"
+    },
+    "chapter": "继承与多态",
+    "point": "抽象类与协变返回",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-065",
+    "stage": "foundation",
+    "type": "multiple",
+    "stem": "关于抽象类，哪些描述正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "可以包含抽象方法和具体方法。"
+      },
+      {
+        "id": "B",
+        "text": "不能直接使用 new 创建抽象类实例。"
+      },
+      {
+        "id": "C",
+        "text": "抽象子类可以暂不实现父类所有抽象方法。"
+      },
+      {
+        "id": "D",
+        "text": "抽象类不能声明构造器。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "抽象类可保留未实现契约，直到某个具体子类完成实现。",
+      "pitfall": "构造器参与子类构造，但抽象类仍不能独立实例化。",
+      "takeaway": "把抽象类型与其子类的实例化边界分清。"
+    },
+    "chapter": "继承与多态",
+    "point": "抽象类与协变返回",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-066",
+    "stage": "foundation",
+    "type": "multiple",
+    "stem": "以下哪些对子类构造过程的描述正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "创建子类对象时会先构造父类部分。"
+      },
+      {
+        "id": "B",
+        "text": "未显式指定时，子类构造器会尝试调用父类无参构造器。"
+      },
+      {
+        "id": "C",
+        "text": "子类构造器可以在任意位置调用 super(...)。"
+      },
+      {
+        "id": "D",
+        "text": "父类没有可访问无参构造器时，子类需显式调用可用父类构造器。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "父类部分必须先初始化；super(...) 显式构造调用必须位于首行。",
+      "pitfall": "父类构造器缺失会让隐式 super() 无法解析。",
+      "takeaway": "检查继承链上每层构造器的可访问性与调用顺序。"
+    },
+    "chapter": "继承与多态",
+    "point": "抽象类与协变返回",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-067",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "这个重写调用返回哪种类型的名字？",
+    "code": "class Animal {}\nclass Dog extends Animal {}\nclass Factory { Animal create() { return new Animal(); } }\nclass DogFactory extends Factory { @Override Dog create() { return new Dog(); } }\nSystem.out.println(new DogFactory().create().getClass().getSimpleName());",
+    "languageVersion": 21,
+    "answer": "Dog",
+    "explanation": {
+      "reasoning": "子类方法采用合法协变返回 Dog，因此创建并返回 Dog 实例。",
+      "pitfall": "重写方法的返回类型必须满足父类签名的赋值兼容性。",
+      "takeaway": "协变返回类型让具体工厂可暴露更具体的结果。"
+    },
+    "chapter": "继承与多态",
+    "point": "抽象类与协变返回"
+  },
+  {
+    "id": "J02-068",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "输出顺序是什么？",
+    "code": "class Parent { Parent() { print(); } void print() { System.out.print(\"P\"); } }\nclass Child extends Parent { int value = 7; @Override void print() { System.out.print(value); } }\nnew Child();",
+    "languageVersion": 21,
+    "answer": "0",
+    "explanation": {
+      "reasoning": "父类构造期间会动态调用子类重写的 print，但子类字段初始化尚未执行，value 仍为默认值 0。",
+      "pitfall": "构造器中调用可重写方法会暴露未初始化的子类状态。",
+      "takeaway": "构造期间尽量避免调用可被子类覆盖的方法。"
+    },
+    "chapter": "继承与多态",
+    "point": "抽象类与协变返回"
+  },
+  {
+    "id": "J02-069",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "执行构造后输出什么？",
+    "code": "class Base { int n = 1; Base() { n += 2; } }\nclass Sub extends Base { int m = 4; Sub() { m += n; } }\nSub s = new Sub();\nSystem.out.println(s.n + \":\" + s.m);",
+    "languageVersion": 21,
+    "answer": "3:7",
+    "explanation": {
+      "reasoning": "先初始化父类 n=1，再执行父类构造变成 3；子类字段 m=4 后，子类构造把 n 加到 m 得 7。",
+      "pitfall": "父类初始化和构造在子类字段初始化之前完成。",
+      "takeaway": "继承构造题按父类到子类逐段模拟。"
+    },
+    "chapter": "继承与多态",
+    "point": "抽象类与协变返回"
+  },
+  {
+    "id": "J02-070",
+    "stage": "foundation",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么子类构造器没有匹配到 super()？",
+    "code": "class Base { Base(String name) {} }\nclass Child extends Base { Child() {} }",
+    "languageVersion": 21,
+    "answer": "在 Child 构造器首行写 `super(\"name\")`，或给 Base 增加可访问的无参构造器。",
+    "explanation": {
+      "reasoning": "编译器隐式插入 super()，但 Base 只提供带参构造器。",
+      "pitfall": "父类没有无参构造器时，子类必须显式选一个父类构造器。",
+      "takeaway": "每个构造器的第一步都必须形成合法的父类初始化链。"
+    },
+    "chapter": "继承与多态",
+    "point": "抽象类与协变返回"
+  },
+  {
+    "id": "J02-071",
+    "stage": "foundation",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "如何避免父类构造期间访问到未初始化的子类字段？",
+    "code": "class Base { Base() { initialize(); } void initialize() {} }\nclass Child extends Base { int limit = 10; @Override void initialize() { System.out.println(limit); } }",
+    "languageVersion": 21,
+    "answer": "避免在 Base 构造器中调用可重写方法；把初始化逻辑留给显式构造步骤或私有方法。",
+    "explanation": {
+      "reasoning": "父类构造调用到 Child.initialize 时，Child 字段初始化还未发生。",
+      "pitfall": "动态分派在构造期间仍然生效。",
+      "takeaway": "构造器保持简单，不向子类暴露半初始化对象。"
+    },
+    "chapter": "继承与多态",
+    "point": "抽象类与协变返回"
+  },
+  {
+    "id": "J02-072",
+    "stage": "foundation",
+    "type": "single",
+    "stem": "record 的主要用途是什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "简洁表达以组件数据为中心的不可继承数据载体。"
+      },
+      {
+        "id": "B",
+        "text": "替代所有可变业务实体。"
+      },
+      {
+        "id": "C",
+        "text": "自动深拷贝每一个组件对象。"
+      },
+      {
+        "id": "D",
+        "text": "只能包含 static 字段。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "record 为数据载体生成组件访问器、构造器、equals、hashCode 和 toString 等成员。",
+      "pitfall": "组件对象若可变，record 不会自动深度冻结它。",
+      "takeaway": "选择 record 前确认其值语义和浅层不可变性适合需求。"
+    },
+    "chapter": "类与对象",
+    "point": "record 与值对象",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-073",
+    "stage": "foundation",
+    "type": "single",
+    "stem": "record 的组件访问方式通常是什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "调用与组件同名的访问器，例如 `point.x()`。"
+      },
+      {
+        "id": "B",
+        "text": "必须直接访问 public 字段 `point.x`。"
+      },
+      {
+        "id": "C",
+        "text": "调用 getX()，编译器总会生成 JavaBean getter。"
+      },
+      {
+        "id": "D",
+        "text": "通过静态方法访问。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "record 组件会生成同名访问器方法。",
+      "pitfall": "record 默认不生成 getX 风格的 JavaBean getter。",
+      "takeaway": "使用组件名访问器表达 record 数据。"
+    },
+    "chapter": "类与对象",
+    "point": "record 与值对象",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-074",
+    "stage": "foundation",
+    "type": "multiple",
+    "stem": "关于 record，哪些描述正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "record 隐式继承 Record 类。"
+      },
+      {
+        "id": "B",
+        "text": "record 不能显式继承另一个类。"
+      },
+      {
+        "id": "C",
+        "text": "record 可以实现接口。"
+      },
+      {
+        "id": "D",
+        "text": "record 的组件字段默认可被任意外部代码修改。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "record 有固定的类继承位置，但仍可实现接口。",
+      "pitfall": "组件字段为 private final，外部通常通过访问器读取。",
+      "takeaway": "组件引用 final 不代表其引用的对象深度不可变。"
+    },
+    "chapter": "类与对象",
+    "point": "record 与值对象",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-075",
+    "stage": "foundation",
+    "type": "multiple",
+    "stem": "设计值对象时，哪些行为有助于可靠相等性？",
+    "options": [
+      {
+        "id": "A",
+        "text": "equals 与 hashCode 使用一致的值字段。"
+      },
+      {
+        "id": "B",
+        "text": "将关键状态设为不可变或避免创建后修改。"
+      },
+      {
+        "id": "C",
+        "text": "把对象身份与内容相等混为一个规则。"
+      },
+      {
+        "id": "D",
+        "text": "只要返回同一 hashCode 就能证明对象相等。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B"
+    ],
+    "explanation": {
+      "reasoning": "稳定的相等字段与一致 hashCode 有利于在集合中可靠使用值对象。",
+      "pitfall": "哈希冲突存在，hashCode 相同不代表 equals。",
+      "takeaway": "值对象优先采用明确且稳定的值语义。"
+    },
+    "chapter": "类与对象",
+    "point": "record 与值对象",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J02-076",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "输出结果是什么？",
+    "code": "record Size(int width, int height) {}\nSize a = new Size(2, 5);\nSystem.out.println(a.width() * a.height());",
+    "languageVersion": 21,
+    "answer": "10",
+    "explanation": {
+      "reasoning": "width() 返回 2，height() 返回 5，乘积为 10。",
+      "pitfall": "record 访问器使用组件名，不会自动生成 getWidth。",
+      "takeaway": "record 适合紧凑表达数据参数。"
+    },
+    "chapter": "类与对象",
+    "point": "record 与值对象"
+  },
+  {
+    "id": "J02-077",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "下面两项依次是什么？",
+    "code": "record User(String name) {}\nUser a = new User(\"Mia\");\nUser b = new User(\"Mia\");\nSystem.out.println(a.equals(b) + \":\" + a);",
+    "languageVersion": 21,
+    "answer": "true:User[name=Mia]",
+    "explanation": {
+      "reasoning": "record 自动按组件值比较，并生成包含组件名称和值的 toString。",
+      "pitfall": "record 自动方法是浅层的；引用组件的内部变化需要谨慎。",
+      "takeaway": "减少纯数据类型的样板代码，同时了解生成行为。"
+    },
+    "chapter": "类与对象",
+    "point": "record 与值对象"
+  },
+  {
+    "id": "J02-078",
+    "stage": "foundation",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "输出是否相同？",
+    "code": "record Pair(int left, int right) {}\nSystem.out.println(new Pair(1, 2).hashCode() == new Pair(1, 2).hashCode());",
+    "languageVersion": 21,
+    "answer": "true",
+    "explanation": {
+      "reasoning": "两个 record 值相等，生成的 hashCode 对相同组件产生相同结果。",
+      "pitfall": "不同值也可能出现哈希冲突。",
+      "takeaway": "哈希码用于散列，不是唯一 ID。"
+    },
+    "chapter": "类与对象",
+    "point": "record 与值对象"
+  },
+  {
+    "id": "J02-079",
+    "stage": "foundation",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么这个 record 声明非法？",
+    "code": "record Token(String value) {\n    String value;\n}",
+    "languageVersion": 21,
+    "answer": "删除重复字段声明；record 组件已经声明了对应的 private final 字段。",
+    "explanation": {
+      "reasoning": "组件字段由 record 语法生成，不能再声明同名实例字段。",
+      "pitfall": "可以在规范构造器中校验或规范化组件值。",
+      "takeaway": "把不变量放入构造过程，而不是重复定义组件存储。"
+    },
+    "chapter": "类与对象",
+    "point": "record 与值对象"
+  },
+  {
+    "id": "J02-080",
+    "stage": "foundation",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "如何拒绝 null 名称并保持 record 简洁？",
+    "code": "record User(String name) {}",
+    "languageVersion": 21,
+    "answer": "使用紧凑构造器：`User { Objects.requireNonNull(name); }`。",
+    "explanation": {
+      "reasoning": "默认构造器不会自动验证引用组件非 null。",
+      "pitfall": "验证需要导入 java.util.Objects。",
+      "takeaway": "在值对象边界集中校验必需组件。"
+    },
+    "chapter": "类与对象",
+    "point": "record 与值对象"
+  }
+]

@@ -1,0 +1,28 @@
+{
+  "name": "java-step-up",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "面向手机端的 Java 阶梯式交互题库",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "node --experimental-strip-types --test",
+    "generate:bank": "node scripts/generate-full-bank.mjs",
+    "check:content": "node scripts/validate-content.mjs",
+    "check:java": "node scripts/validate-java.mjs"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "5.2.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "typescript": "5.9.3",
+    "vite": "7.3.6",
+    "vite-plugin-pwa": "1.3.0"
+  },
+  "engines": {
+    "node": ">=22.12",
+    "npm": ">=10"
+  }
+}

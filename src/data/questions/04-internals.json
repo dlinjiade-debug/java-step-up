@@ -1,0 +1,1281 @@
+[
+  {
+    "id": "J04-001",
+    "stage": "internals",
+    "chapter": "并发基础",
+    "point": "volatile 可见性与原子性",
+    "type": "multiple",
+    "difficulty": "综合",
+    "stem": "对 volatile int count 的 i++，哪些判断正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "volatile 可帮助不同线程看到最新写入"
+      },
+      {
+        "id": "B",
+        "text": "i++ 因为有 volatile 就是原子操作"
+      },
+      {
+        "id": "C",
+        "text": "i++ 包含读取、计算和写入等步骤"
+      },
+      {
+        "id": "D",
+        "text": "需要原子递增时可以考虑 AtomicInteger"
+      }
+    ],
+    "answer": [
+      "A",
+      "C",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "volatile 提供可见性和一定的有序性保证，但不会把复合读改写变成不可分割操作。AtomicInteger 提供原子递增方法。",
+      "optionAnalysis": {
+        "A": "正确：volatile 写入与后续读取建立可见性保证。",
+        "B": "错误：多个线程仍可能读到相同旧值再覆盖写入。",
+        "C": "正确：自增不是单一步骤。",
+        "D": "正确：原子类提供适合的并发操作。"
+      },
+      "pitfall": "把可见性误认为互斥或原子性。",
+      "takeaway": "volatile 适合状态发布；复合更新要用锁或原子类。"
+    }
+  },
+  {
+    "id": "J04-002",
+    "stage": "internals",
+    "chapter": "并发基础",
+    "point": "原子类递增",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "单线程执行后会输出什么？",
+    "code": "AtomicInteger count = new AtomicInteger(0);\nint first = count.incrementAndGet();\nSystem.out.println(first + \" / \" + count.get());",
+    "languageVersion": 21,
+    "answer": "1 / 1",
+    "explanation": {
+      "reasoning": "incrementAndGet 原子地递增并返回更新后的值。首次调用后 count 和 first 都是 1，后续 get 仍得到 1。",
+      "pitfall": "incrementAndGet 返回递增后的值；getAndIncrement 返回递增前的值。",
+      "takeaway": "使用原子类时注意方法名表达的返回时机。"
+    }
+  },
+  {
+    "id": "J04-003",
+    "stage": "internals",
+    "chapter": "JVM 内存",
+    "point": "栈帧与堆对象",
+    "type": "single",
+    "difficulty": "基础",
+    "stem": "关于 Java 的线程栈和堆，哪项描述最合适？",
+    "options": [
+      {
+        "id": "A",
+        "text": "所有对象都必须分配在线程栈上"
+      },
+      {
+        "id": "B",
+        "text": "线程执行方法时使用栈帧；对象通常由堆管理"
+      },
+      {
+        "id": "C",
+        "text": "堆为每个线程完全私有"
+      },
+      {
+        "id": "D",
+        "text": "局部变量永远不会出现在栈帧中"
+      }
+    ],
+    "answer": "B",
+    "explanation": {
+      "reasoning": "每个线程有自己的 Java 虚拟机栈，方法调用创建栈帧。对象和数组通常由堆分配和管理；具体实现可优化分配，但不改变程序可观察语义。",
+      "optionAnalysis": {
+        "A": "错误：对象通常由堆管理。",
+        "B": "正确：这是理解运行时数据区的基础模型。",
+        "C": "错误：堆由线程共享。",
+        "D": "错误：局部变量表属于栈帧。"
+      },
+      "pitfall": "不要把规范中的运行时数据区模型与具体 JIT 的分配优化混为一谈。",
+      "takeaway": "栈帧与线程关联，堆主要用于对象与数组。"
+    }
+  },
+  {
+    "id": "J04-004",
+    "stage": "internals",
+    "chapter": "集合与并发",
+    "point": "迭代期间结构修改",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "为什么遍历时直接调用 list.remove 可能抛出 ConcurrentModificationException？推荐怎样删除？",
+    "code": "List<String> names = new ArrayList<>(List.of(\"A\", \"B\", \"C\"));\nfor (String name : names) {\n    if (name.equals(\"B\")) names.remove(name);\n}",
+    "languageVersion": 21,
+    "answer": "增强 for 使用迭代器遍历；直接对列表做结构修改会使迭代器检测到修改计数不一致。可用 Iterator.remove、removeIf，或构造新的过滤结果。",
+    "explanation": {
+      "reasoning": "ArrayList 的 fail-fast 检查用于尽早发现迭代期间的非迭代器结构修改。它是错误检测机制，不是线程安全保证。",
+      "pitfall": "ConcurrentModificationException 的名字不表示只有多线程才会触发。",
+      "takeaway": "遍历中删除元素时使用迭代器提供的删除方法或集合的批量操作。"
+    }
+  },
+  {
+    "id": "J04-005",
+    "stage": "internals",
+    "chapter": "并发基础",
+    "point": "Thread.start 与 run",
+    "type": "single",
+    "difficulty": "巩固",
+    "stem": "直接调用一个 Thread 对象的 run() 方法，会创建新线程吗？",
+    "options": [
+      {
+        "id": "A",
+        "text": "会，run 和 start 完全等价"
+      },
+      {
+        "id": "B",
+        "text": "不会，它只是当前线程中的普通方法调用"
+      },
+      {
+        "id": "C",
+        "text": "会，但线程会立即结束"
+      },
+      {
+        "id": "D",
+        "text": "只有在线程池中调用才会创建新线程"
+      }
+    ],
+    "answer": "B",
+    "explanation": {
+      "reasoning": "start 请求 JVM 启动新的执行线程，随后由新线程调用 run。直接调用 run 不启动线程，只在当前调用栈中执行方法体。",
+      "optionAnalysis": {
+        "A": "错误：只有 start 才启动新的执行流。",
+        "B": "正确：run 是普通实例方法。",
+        "C": "直接调用 run 时没有新线程可结束。",
+        "D": "线程池有自己的提交接口，也不改变 run 的普通方法语义。"
+      },
+      "pitfall": "把任务代码入口 run 与线程启动入口 start 混淆。",
+      "takeaway": "启动 Thread 使用 start；任务提交给 Executor 使用 execute 或 submit。"
+    }
+  },
+  {
+    "id": "J04-006",
+    "stage": "internals",
+    "type": "single",
+    "stem": "调用一个方法时，通常哪类数据随该次调用创建并随返回而结束？",
+    "options": [
+      {
+        "id": "A",
+        "text": "该调用的栈帧与局部变量。"
+      },
+      {
+        "id": "B",
+        "text": "所有堆对象。"
+      },
+      {
+        "id": "C",
+        "text": "整个类的元数据。"
+      },
+      {
+        "id": "D",
+        "text": "所有线程的栈。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "每次方法调用创建栈帧，保存局部变量表、操作数栈等；返回时该帧退出。",
+      "pitfall": "局部变量中的引用消失，不代表引用对象一定立刻回收。",
+      "takeaway": "区分线程栈帧和堆中对象的生命周期。"
+    },
+    "chapter": "JVM 内存",
+    "point": "栈、堆与对象引用",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-007",
+    "stage": "internals",
+    "type": "single",
+    "stem": "一个对象不再能从任何 GC Root 到达，通常意味着什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "它符合被垃圾回收的条件，但回收时间不确定。"
+      },
+      {
+        "id": "B",
+        "text": "它必须在下一条语句前销毁。"
+      },
+      {
+        "id": "C",
+        "text": "JVM 会立即调用对象析构器。"
+      },
+      {
+        "id": "D",
+        "text": "它会自动写入磁盘。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "不可达对象可被垃圾回收器回收，但何时回收没有保证。",
+      "pitfall": "Java 不提供确定时刻的析构语义。",
+      "takeaway": "不要把对象不可达和内存立即释放等同。"
+    },
+    "chapter": "JVM 内存",
+    "point": "栈、堆与对象引用",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-008",
+    "stage": "internals",
+    "type": "multiple",
+    "stem": "关于 JVM 内存区域，哪些说法较准确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "每个线程拥有自己的 Java 虚拟机栈。"
+      },
+      {
+        "id": "B",
+        "text": "对象通常分配在堆中。"
+      },
+      {
+        "id": "C",
+        "text": "程序计数器在所有线程间共享一份。"
+      },
+      {
+        "id": "D",
+        "text": "类元数据通常由方法区相关运行时区域承载。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "栈与程序计数器具有线程私有属性；堆和类元数据区域由线程共享。",
+      "pitfall": "具体实现可采用不同物理布局，规范描述的是运行时数据区域语义。",
+      "takeaway": "避免把 JVM 规范区域与某一实现的物理内存布局混为一谈。"
+    },
+    "chapter": "JVM 内存",
+    "point": "栈、堆与对象引用",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-009",
+    "stage": "internals",
+    "type": "multiple",
+    "stem": "关于对象引用与可达性，哪些描述正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "一个对象可以被多个引用指向。"
+      },
+      {
+        "id": "B",
+        "text": "局部引用变量离开作用域后，其引用值不再从该变量读取。"
+      },
+      {
+        "id": "C",
+        "text": "GC 必须按 Java 变量名从短到长回收。"
+      },
+      {
+        "id": "D",
+        "text": "对象仍被静态集合强引用时通常保持可达。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "对象可共享引用；GC 根据可达性判断，而不是变量名称或词法顺序。",
+      "pitfall": "JIT 还可能提前判定局部变量不再存活。",
+      "takeaway": "检查根引用链，而不是寻找对象创建时的变量名。"
+    },
+    "chapter": "JVM 内存",
+    "point": "栈、堆与对象引用",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-010",
+    "stage": "internals",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "程序输出什么？",
+    "code": "int x = 3;\nint y = x;\ny = 9;\nSystem.out.println(x + \":\" + y);",
+    "languageVersion": 21,
+    "answer": "3:9",
+    "explanation": {
+      "reasoning": "基本类型赋值复制数值；重写 y 不影响 x。",
+      "pitfall": "基本类型和引用类型赋值的对象关系不同。",
+      "takeaway": "先确认变量保存值还是引用。"
+    },
+    "chapter": "JVM 内存",
+    "point": "栈、堆与对象引用"
+  },
+  {
+    "id": "J04-011",
+    "stage": "internals",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "会打印什么？",
+    "code": "class Box { int value; }\nBox a = new Box();\nBox b = a;\nb.value = 6;\nSystem.out.println(a.value);",
+    "languageVersion": 21,
+    "answer": "6",
+    "explanation": {
+      "reasoning": "两个局部变量指向同一个堆对象，通过 b 修改的字段也可由 a 看到。",
+      "pitfall": "局部引用在栈帧中，对象状态通常位于堆中。",
+      "takeaway": "对象别名共享状态，需要考虑封装。"
+    },
+    "chapter": "JVM 内存",
+    "point": "栈、堆与对象引用"
+  },
+  {
+    "id": "J04-012",
+    "stage": "internals",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "代码最后输出什么？",
+    "code": "class Node { Node next; }\nNode first = new Node();\nNode second = new Node();\nfirst.next = second;\nfirst = null;\nSystem.out.println(second != null);",
+    "languageVersion": 21,
+    "answer": "true",
+    "explanation": {
+      "reasoning": "second 仍直接引用第二个 Node；清空 first 不会清掉 second 引用。",
+      "pitfall": "对象是否可达要看所有引用路径。",
+      "takeaway": "多个引用可以让对象在某个引用消失后仍保持可达。"
+    },
+    "chapter": "JVM 内存",
+    "point": "栈、堆与对象引用"
+  },
+  {
+    "id": "J04-013",
+    "stage": "internals",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "为什么在方法返回后不能再使用方法内的局部变量？",
+    "code": "static void run() {\n    int local = 3;\n}\nSystem.out.println(local);",
+    "languageVersion": 21,
+    "answer": "把要在调用后使用的值作为返回值返回，或声明在合适的外部作用域。",
+    "explanation": {
+      "reasoning": "local 只在 run 方法作用域内可见，方法返回时其栈帧退出。",
+      "pitfall": "作用域是语言规则，不能通过堆栈模型绕过。",
+      "takeaway": "通过参数和返回值显式传递方法数据。"
+    },
+    "chapter": "JVM 内存",
+    "point": "栈、堆与对象引用"
+  },
+  {
+    "id": "J04-014",
+    "stage": "internals",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "为什么清空这个引用后，对象仍可能不能回收？",
+    "code": "static Object retained;\nObject value = new Object();\nretained = value;\nvalue = null;",
+    "languageVersion": 21,
+    "answer": "同时清除 `retained` 或移除持有它的集合条目；确认不存在其他强引用路径。",
+    "explanation": {
+      "reasoning": "静态字段 retained 仍然指向对象，使其从 GC Root 可达。",
+      "pitfall": "只清除一个局部别名不能证明对象不可达。",
+      "takeaway": "沿着静态字段、线程栈和集合引用追踪可达路径。"
+    },
+    "chapter": "JVM 内存",
+    "point": "栈、堆与对象引用"
+  },
+  {
+    "id": "J04-015",
+    "stage": "internals",
+    "type": "single",
+    "stem": "主动使用一个类时，类初始化通常先后按什么顺序进行？",
+    "options": [
+      {
+        "id": "A",
+        "text": "先初始化父类，再初始化子类。"
+      },
+      {
+        "id": "B",
+        "text": "先初始化子类，再初始化父类。"
+      },
+      {
+        "id": "C",
+        "text": "按字段名称字母序。"
+      },
+      {
+        "id": "D",
+        "text": "所有类在 JVM 启动时同时初始化。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "类初始化会保证父类先于子类；接口相关细节则需按具体初始化规则分析。",
+      "pitfall": "类加载、链接与初始化是不同阶段。",
+      "takeaway": "阅读静态初始化输出时，沿父子关系追踪。"
+    },
+    "chapter": "类加载",
+    "point": "加载、初始化与反射",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-016",
+    "stage": "internals",
+    "type": "single",
+    "stem": "`Class.forName(\"example.Widget\")` 的常见效果是什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "加载并初始化该类（默认使用当前调用方类加载器）。"
+      },
+      {
+        "id": "B",
+        "text": "只生成源码文件。"
+      },
+      {
+        "id": "C",
+        "text": "实例化一个 Widget 对象。"
+      },
+      {
+        "id": "D",
+        "text": "自动调用 Widget 的所有实例方法。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "常见单参数 Class.forName 会加载并初始化目标类。",
+      "pitfall": "得到 Class 对象不等于创建实例。",
+      "takeaway": "需要仅加载而不初始化时，使用带 initialize 参数的重载。"
+    },
+    "chapter": "类加载",
+    "point": "加载、初始化与反射",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-017",
+    "stage": "internals",
+    "type": "multiple",
+    "stem": "类加载器双亲委派模型通常有哪些目的？",
+    "options": [
+      {
+        "id": "A",
+        "text": "优先让父加载器尝试加载类。"
+      },
+      {
+        "id": "B",
+        "text": "降低核心 API 被用户类重复定义替换的风险。"
+      },
+      {
+        "id": "C",
+        "text": "保证所有类只能由启动类加载器加载。"
+      },
+      {
+        "id": "D",
+        "text": "应用仍可通过自定义加载器扩展加载策略。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "双亲委派有助于类身份与核心类安全，同时不排除自定义加载器。",
+      "pitfall": "不同类加载器可以定义不同的同名类。",
+      "takeaway": "类身份由二进制名称和定义它的加载器共同决定。"
+    },
+    "chapter": "类加载",
+    "point": "加载、初始化与反射",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-018",
+    "stage": "internals",
+    "type": "multiple",
+    "stem": "关于反射和 Class 对象，哪些描述正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "`obj.getClass()` 返回对象运行时类的 Class 对象。"
+      },
+      {
+        "id": "B",
+        "text": "反射可以检查类型成员并在权限允许时调用方法。"
+      },
+      {
+        "id": "C",
+        "text": "同名类即便由不同类加载器定义，也必然是相同运行时类型。"
+      },
+      {
+        "id": "D",
+        "text": "反射 API 操作失败可能抛出受检或运行时异常。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "Class 提供运行时类型信息；反射能动态操作成员并受访问控制影响。",
+      "pitfall": "定义加载器不同可能使同名二进制类成为不同类型。",
+      "takeaway": "使用反射时应处理成员不存在、访问受限和目标调用异常。"
+    },
+    "chapter": "类加载",
+    "point": "加载、初始化与反射",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-019",
+    "stage": "internals",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "静态初始化的打印顺序是什么？",
+    "code": "class Base { static { System.out.print(\"B\"); } }\nclass Child extends Base { static { System.out.print(\"C\"); } }\nClass<?> type = Child.class;\nnew Child();",
+    "languageVersion": 21,
+    "answer": "BC",
+    "explanation": {
+      "reasoning": "取 Child.class 字面量不会触发初始化；new Child 时先初始化 Base，再初始化 Child。",
+      "pitfall": "获取类字面量与主动初始化不是同一操作。",
+      "takeaway": "区分类信息解析与类初始化触发点。"
+    },
+    "chapter": "类加载",
+    "point": "加载、初始化与反射"
+  },
+  {
+    "id": "J04-020",
+    "stage": "internals",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "通过父类引用查看的运行时类名是什么？",
+    "code": "class Parent {}\nclass Child extends Parent {}\nParent item = new Child();\nSystem.out.println(item.getClass().getSimpleName());",
+    "languageVersion": 21,
+    "answer": "Child",
+    "explanation": {
+      "reasoning": "getClass 返回对象运行时类型，而非变量声明类型。",
+      "pitfall": "静态类型影响编译期成员检查。",
+      "takeaway": "用 getClass 观察对象的实际类型。"
+    },
+    "chapter": "类加载",
+    "point": "加载、初始化与反射"
+  },
+  {
+    "id": "J04-021",
+    "stage": "internals",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "静态初始化块执行几次？",
+    "code": "class Cache { static int loads; static { loads++; } }\nnew Cache(); new Cache();\nSystem.out.println(Cache.loads);",
+    "languageVersion": 21,
+    "answer": "1",
+    "explanation": {
+      "reasoning": "类初始化对同一 Class 对象通常只执行一次；后续对象共享已初始化的类状态。",
+      "pitfall": "每个对象构造不会重新执行静态初始化。",
+      "takeaway": "类初始化和实例初始化是两个阶段。"
+    },
+    "chapter": "类加载",
+    "point": "加载、初始化与反射"
+  },
+  {
+    "id": "J04-022",
+    "stage": "internals",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "为什么静态字段读取时出现初始化错误？",
+    "code": "class Config { static int PORT = Integer.parseInt(System.getenv(\"PORT\")); }",
+    "languageVersion": 21,
+    "answer": "检查环境变量是否设置为合法整数，并在静态初始化中处理或避免外部配置失败。",
+    "explanation": {
+      "reasoning": "类主动使用会触发静态字段初始化；解析失败可抛 NumberFormatException，并使类初始化失败。",
+      "pitfall": "类初始化失败会影响该 Class 后续主动使用。",
+      "takeaway": "避免把不可靠外部输入解析放进不可恢复的静态初始化路径。"
+    },
+    "chapter": "类加载",
+    "point": "加载、初始化与反射"
+  },
+  {
+    "id": "J04-023",
+    "stage": "internals",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "反射代码为什么找不到构造器？",
+    "code": "var ctor = type.getConstructor(String.class);\nObject value = ctor.newInstance(\"x\");",
+    "languageVersion": 21,
+    "answer": "确认类确有 public String 构造器；否则使用 `getDeclaredConstructor(String.class)` 并按访问规则处理。",
+    "explanation": {
+      "reasoning": "getConstructor 只查找 public 构造器，不包括非 public 声明。",
+      "pitfall": "获取声明成员和执行访问还受模块及访问控制影响。",
+      "takeaway": "选择符合成员可见性范围的反射 API。"
+    },
+    "chapter": "类加载",
+    "point": "加载、初始化与反射"
+  },
+  {
+    "id": "J04-024",
+    "stage": "internals",
+    "type": "single",
+    "stem": "Java 垃圾回收器主要依据什么判断对象是否可回收？",
+    "options": [
+      {
+        "id": "A",
+        "text": "从 GC Roots 出发是否仍有可达路径。"
+      },
+      {
+        "id": "B",
+        "text": "对象最后一次创建的时间。"
+      },
+      {
+        "id": "C",
+        "text": "对象的 hashCode 是否为 0。"
+      },
+      {
+        "id": "D",
+        "text": "程序员是否调用过 System.gc。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "主流追踪式 GC 根据对象从根集合是否可达判断存活。",
+      "pitfall": "System.gc 只是请求，不保证立刻或必然执行回收。",
+      "takeaway": "对象生命周期取决于引用图，而非手动析构调用。"
+    },
+    "chapter": "JVM 内存",
+    "point": "GC 可达性与引用",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-025",
+    "stage": "internals",
+    "type": "single",
+    "stem": "SoftReference 与 WeakReference 的一般区别是什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "软引用通常在内存压力下才可能被清除，弱引用对象在下一次相关 GC 时即可被清除。"
+      },
+      {
+        "id": "B",
+        "text": "两者都保证对象永不回收。"
+      },
+      {
+        "id": "C",
+        "text": "弱引用比强引用更强。"
+      },
+      {
+        "id": "D",
+        "text": "软引用对象必须放在栈上。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "两种特殊引用强度不同；软引用常用于内存敏感缓存，弱引用更容易被清除。",
+      "pitfall": "具体回收时机仍由运行时决定。",
+      "takeaway": "缓存正确性不应依赖引用对象一定存活多久。"
+    },
+    "chapter": "JVM 内存",
+    "point": "GC 可达性与引用",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-026",
+    "stage": "internals",
+    "type": "multiple",
+    "stem": "关于 Java 对象回收，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "不可达表示对象符合回收条件，不代表立即回收。"
+      },
+      {
+        "id": "B",
+        "text": "finalize 提供可靠、确定时机的资源释放。"
+      },
+      {
+        "id": "C",
+        "text": "try-with-resources 适合确定性关闭文件资源。"
+      },
+      {
+        "id": "D",
+        "text": "循环引用的对象只要整个环不可达，仍可被追踪式 GC 回收。"
+      }
+    ],
+    "answer": [
+      "A",
+      "C",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "追踪式 GC 能回收不可达循环；文件等资源应使用确定性的 close 结构。",
+      "pitfall": "finalize 已被弃用方向所取代且不可靠，不能用于资源生命周期保证。",
+      "takeaway": "用 AutoCloseable 和 try-with-resources 管理外部资源。"
+    },
+    "chapter": "JVM 内存",
+    "point": "GC 可达性与引用",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-027",
+    "stage": "internals",
+    "type": "multiple",
+    "stem": "哪些对象通常可能作为 GC Root 或根集合来源？",
+    "options": [
+      {
+        "id": "A",
+        "text": "当前活动线程栈中可达的引用。"
+      },
+      {
+        "id": "B",
+        "text": "类静态字段引用。"
+      },
+      {
+        "id": "C",
+        "text": "JNI 句柄引用。"
+      },
+      {
+        "id": "D",
+        "text": "任何已不可达对象的自身引用。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "活动栈、静态字段和 JNI 引用等可构成根集合来源。",
+      "pitfall": "不可达对象内部的环不能凭自身恢复外部可达性。",
+      "takeaway": "沿根到对象的引用路径判断存活。"
+    },
+    "chapter": "JVM 内存",
+    "point": "GC 可达性与引用",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-028",
+    "stage": "internals",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "这段代码运行后是否能访问到 value？",
+    "code": "Object value = new Object();\nObject alias = value;\nvalue = null;\nSystem.out.println(alias != null);",
+    "languageVersion": 21,
+    "answer": "true",
+    "explanation": {
+      "reasoning": "alias 仍指向对象，因此局部变量引用仍可访问该对象。",
+      "pitfall": "清除一个变量不等于对象无引用。",
+      "takeaway": "检查是否有其他别名保持引用。"
+    },
+    "chapter": "JVM 内存",
+    "point": "GC 可达性与引用"
+  },
+  {
+    "id": "J04-029",
+    "stage": "internals",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "输出是什么？",
+    "code": "var reference = new java.lang.ref.WeakReference<>(new Object());\nSystem.out.println(reference.get() == null);",
+    "languageVersion": 21,
+    "answer": "不确定：GC 时机未指定",
+    "explanation": {
+      "reasoning": "临时对象没有其他强引用，但 GC 是否已运行以及何时运行没有保证。",
+      "pitfall": "在无压力的短程序中结果也可能受调度影响。",
+      "takeaway": "不要把弱引用清除时机写成确定性业务结果。"
+    },
+    "chapter": "JVM 内存",
+    "point": "GC 可达性与引用"
+  },
+  {
+    "id": "J04-030",
+    "stage": "internals",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "显式调用 gc 后对象一定已被回收吗？",
+    "code": "Object value = new Object();\nvalue = null;\nSystem.gc();",
+    "languageVersion": 21,
+    "answer": "不保证",
+    "explanation": {
+      "reasoning": "System.gc 是向运行时提出回收建议，不保证立即执行，也不保证某个对象一定被回收。",
+      "pitfall": "System.gc 不是同步销毁 API。",
+      "takeaway": "正确程序不依赖手动触发 GC 的时间。"
+    },
+    "chapter": "JVM 内存",
+    "point": "GC 可达性与引用"
+  },
+  {
+    "id": "J04-031",
+    "stage": "internals",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "为什么这段缓存不能保证对象在需要时还存在？",
+    "code": "var cache = new java.util.WeakHashMap<Object, String>();\nObject key = new Object();\ncache.put(key, \"value\");\nkey = null;",
+    "languageVersion": 21,
+    "answer": "若缓存值必须保留映射，应采用强引用键或其他明确生命周期策略；不要依赖 WeakHashMap 保留键。",
+    "explanation": {
+      "reasoning": "弱键在没有其他强引用后可被 GC 清除，映射可能随之移除。",
+      "pitfall": "弱引用缓存具有非确定性存活时间。",
+      "takeaway": "先定义缓存过期策略，再选择强引用或特殊引用。"
+    },
+    "chapter": "JVM 内存",
+    "point": "GC 可达性与引用"
+  },
+  {
+    "id": "J04-032",
+    "stage": "internals",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "为什么用 finalize 关闭文件可能造成资源泄漏？",
+    "code": "class ReaderOwner {\n    protected void finalize() { closeFile(); }\n}",
+    "languageVersion": 21,
+    "answer": "让对象实现 AutoCloseable，并由调用方用 try-with-resources 显式关闭。",
+    "explanation": {
+      "reasoning": "finalize 调用时间不确定，甚至可能在进程结束前都不执行。",
+      "pitfall": "垃圾回收与外部资源关闭是不同生命周期。",
+      "takeaway": "对文件、socket 等资源使用确定性释放机制。"
+    },
+    "chapter": "JVM 内存",
+    "point": "GC 可达性与引用"
+  },
+  {
+    "id": "J04-033",
+    "stage": "internals",
+    "type": "single",
+    "stem": "把字段声明为 volatile，能够保证什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "读写可见性与相关的内存顺序约束，但不保证复合操作原子。"
+      },
+      {
+        "id": "B",
+        "text": "所有线程自动互斥执行。"
+      },
+      {
+        "id": "C",
+        "text": "所有对象方法变成 synchronized。"
+      },
+      {
+        "id": "D",
+        "text": "线程永远不会被中断。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "volatile 建立特定的可见性和顺序保证，但 `count++` 仍由读、改、写组成。",
+      "pitfall": "可见性与原子性是不同性质。",
+      "takeaway": "共享计数通常使用 synchronized 或原子类。"
+    },
+    "chapter": "并发基础",
+    "point": "Java 内存模型与原子性",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-034",
+    "stage": "internals",
+    "type": "single",
+    "stem": "线程调用 `worker.join()` 正常返回后，主线程可以依赖什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "worker 已经终止，且 worker 中的动作 happens-before join 返回后的动作。"
+      },
+      {
+        "id": "B",
+        "text": "worker 还未开始执行。"
+      },
+      {
+        "id": "C",
+        "text": "主线程一定已经被中断。"
+      },
+      {
+        "id": "D",
+        "text": "所有其他 JVM 线程也都终止了。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "join 等待指定线程结束，并建立线程终止与成功 join 后动作之间的 happens-before。",
+      "pitfall": "join 只等待指定线程，不会停止进程中的其他线程。",
+      "takeaway": "用 join 建立清晰的线程完成和结果读取边界。"
+    },
+    "chapter": "并发基础",
+    "point": "Java 内存模型与原子性",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-035",
+    "stage": "internals",
+    "type": "multiple",
+    "stem": "关于共享计数器，哪些方案能保证并发递增不丢失更新？",
+    "options": [
+      {
+        "id": "A",
+        "text": "对读改写全过程使用同一把 synchronized 锁。"
+      },
+      {
+        "id": "B",
+        "text": "使用 AtomicInteger.incrementAndGet。"
+      },
+      {
+        "id": "C",
+        "text": "只将 int 字段声明为 volatile。"
+      },
+      {
+        "id": "D",
+        "text": "线程各自写入无同步的共享 `count++`。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B"
+    ],
+    "explanation": {
+      "reasoning": "同步临界区或原子类提供不可分割的递增操作。",
+      "pitfall": "volatile 不会把复合读改写合成为一个原子动作。",
+      "takeaway": "将原子性要求落实到完整操作，而非单个字段读写。"
+    },
+    "chapter": "并发基础",
+    "point": "Java 内存模型与原子性",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-036",
+    "stage": "internals",
+    "type": "multiple",
+    "stem": "哪些操作通常会建立 happens-before 关系？",
+    "options": [
+      {
+        "id": "A",
+        "text": "同一线程内程序顺序中的前序动作先于后续动作。"
+      },
+      {
+        "id": "B",
+        "text": "线程对 volatile 字段的写先于后续对该字段的读。"
+      },
+      {
+        "id": "C",
+        "text": "线程 A 调用 start 先于新线程中的动作。"
+      },
+      {
+        "id": "D",
+        "text": "任意两个线程同时读取同一普通 int。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "程序顺序、volatile 同步关系和 start 关系均由内存模型定义。",
+      "pitfall": "普通变量的并发读本身不会建立线程间顺序关系。",
+      "takeaway": "用明确同步边连接共享状态的写入与读取。"
+    },
+    "chapter": "并发基础",
+    "point": "Java 内存模型与原子性",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-037",
+    "stage": "internals",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "join 后会打印什么？",
+    "code": "class Box { int value; }\nBox box = new Box();\nThread t = new Thread(() -> box.value = 7);\nt.start();\nt.join();\nSystem.out.println(box.value);",
+    "languageVersion": 21,
+    "answer": "7",
+    "explanation": {
+      "reasoning": "worker 在结束前写入 7，join 返回保证其先行动作对主线程可见。",
+      "pitfall": "若没有 start/join 或其他同步关系，普通字段并发访问可能不可见。",
+      "takeaway": "通过线程完成协议安全发布结果。"
+    },
+    "chapter": "并发基础",
+    "point": "Java 内存模型与原子性"
+  },
+  {
+    "id": "J04-038",
+    "stage": "internals",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "原子计数最终是多少？",
+    "code": "var count = new java.util.concurrent.atomic.AtomicInteger(0);\ncount.incrementAndGet();\ncount.addAndGet(4);\nSystem.out.println(count.get());",
+    "languageVersion": 21,
+    "answer": "5",
+    "explanation": {
+      "reasoning": "原子值从 0 加 1，再加 4，结果为 5。",
+      "pitfall": "原子类只保护其定义的原子操作；复合业务逻辑仍需设计同步。",
+      "takeaway": "把共享计数封装到专门的原子类型中。"
+    },
+    "chapter": "并发基础",
+    "point": "Java 内存模型与原子性"
+  },
+  {
+    "id": "J04-039",
+    "stage": "internals",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "执行后打印的布尔值是什么？",
+    "code": "var ready = new java.util.concurrent.atomic.AtomicBoolean(false);\nready.set(true);\nSystem.out.println(ready.get());",
+    "languageVersion": 21,
+    "answer": "true",
+    "explanation": {
+      "reasoning": "同线程先写 true 再读取，因此得到 true；AtomicBoolean 还支持跨线程原子读写。",
+      "pitfall": "这个顺序题本身不展示竞争条件。",
+      "takeaway": "原子类既提供原子性，也提供相应可见性语义。"
+    },
+    "chapter": "并发基础",
+    "point": "Java 内存模型与原子性"
+  },
+  {
+    "id": "J04-040",
+    "stage": "internals",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "为什么 volatile counter 仍可能少计？",
+    "code": "volatile int counter;\nvoid increment() { counter++; }",
+    "languageVersion": 21,
+    "answer": "改用 `AtomicInteger.incrementAndGet()`，或在整个 increment 方法/临界区加同步。",
+    "explanation": {
+      "reasoning": "counter++ 先读值、计算新值再写回，多个线程的步骤可能交错覆盖。",
+      "pitfall": "volatile 只保证字段访问语义，不保证复合更新原子。",
+      "takeaway": "把不可分割操作作为一个同步单位保护。"
+    },
+    "chapter": "并发基础",
+    "point": "Java 内存模型与原子性"
+  },
+  {
+    "id": "J04-041",
+    "stage": "internals",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "线程启动后为什么不能直接假设结果已写好？怎样等待它完成？",
+    "code": "Thread worker = new Thread(() -> result = compute());\nworker.start();\nSystem.out.println(result);",
+    "languageVersion": 21,
+    "answer": "在读取前调用 `worker.join()`，并处理 InterruptedException。",
+    "explanation": {
+      "reasoning": "start 只启动异步执行，不等待 run 完成。",
+      "pitfall": "调度顺序不是固定的。",
+      "takeaway": "用 join、Future.get 等完成同步而非依赖休眠时间。"
+    },
+    "chapter": "并发基础",
+    "point": "Java 内存模型与原子性"
+  },
+  {
+    "id": "J04-042",
+    "stage": "internals",
+    "type": "single",
+    "stem": "使用显式 `ReentrantLock` 时，最重要的释放习惯是什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "在 finally 中 unlock，确保异常路径也释放。"
+      },
+      {
+        "id": "B",
+        "text": "每次 lock 后等待一秒。"
+      },
+      {
+        "id": "C",
+        "text": "只有线程成功时才 unlock。"
+      },
+      {
+        "id": "D",
+        "text": "不需要调用 unlock，GC 会释放。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "锁获取后应在 finally 中释放，避免异常路径使其他线程永久等待。",
+      "pitfall": "ReentrantLock 不会因为对象被 GC 而自动替业务释放。",
+      "takeaway": "把 lock 与 try/finally 配对。"
+    },
+    "chapter": "锁与线程池",
+    "point": "锁、Executor 与并发容器",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-043",
+    "stage": "internals",
+    "type": "single",
+    "stem": "调用 ExecutorService.shutdown() 通常表示什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "不再接受新任务，并让已提交任务继续完成。"
+      },
+      {
+        "id": "B",
+        "text": "立刻中断所有正在执行的任务。"
+      },
+      {
+        "id": "C",
+        "text": "删除所有队列中的任务。"
+      },
+      {
+        "id": "D",
+        "text": "只关闭当前调用线程。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "shutdown 发出有序关闭请求：停止接收新任务，处理已提交任务。",
+      "pitfall": "shutdownNow 的语义更偏向尝试中断与返回未启动任务。",
+      "takeaway": "按所需关闭语义选择 shutdown 或 shutdownNow。"
+    },
+    "chapter": "锁与线程池",
+    "point": "锁、Executor 与并发容器",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-044",
+    "stage": "internals",
+    "type": "multiple",
+    "stem": "关于线程池和 Future，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "submit 可返回 Future 供调用方取结果或状态。"
+      },
+      {
+        "id": "B",
+        "text": "Future.get 通常会等待任务完成。"
+      },
+      {
+        "id": "C",
+        "text": "调用 shutdown 后立即提交新任务仍必然成功。"
+      },
+      {
+        "id": "D",
+        "text": "线程池可避免为每个短任务反复创建线程。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "Future 表示异步结果；get 等待完成，线程池复用工作线程。",
+      "pitfall": "shutdown 后新任务会被拒绝。",
+      "takeaway": "管理好池的生命周期并处理拒绝、取消与异常。"
+    },
+    "chapter": "锁与线程池",
+    "point": "锁、Executor 与并发容器",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-045",
+    "stage": "internals",
+    "type": "multiple",
+    "stem": "关于锁和并发容器，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "ConcurrentHashMap 不允许 null 键和值。"
+      },
+      {
+        "id": "B",
+        "text": "在 finally 调用 unlock 可防止异常路径泄漏锁。"
+      },
+      {
+        "id": "C",
+        "text": "锁获取和释放可建立可见性关系。"
+      },
+      {
+        "id": "D",
+        "text": "把所有变量都声明 volatile 就等价于互斥锁。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "ConcurrentHashMap 禁止 null；锁提供互斥与内存可见性语义。",
+      "pitfall": "volatile 不提供互斥，也不能保护跨字段不变量。",
+      "takeaway": "根据共享状态操作选择锁、原子类或并发容器。"
+    },
+    "chapter": "锁与线程池",
+    "point": "锁、Executor 与并发容器",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J04-046",
+    "stage": "internals",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "执行两次原子更新后打印什么？",
+    "code": "var count = new java.util.concurrent.atomic.AtomicInteger();\ncount.updateAndGet(n -> n + 2);\ncount.updateAndGet(n -> n * 3);\nSystem.out.println(count.get());",
+    "languageVersion": 21,
+    "answer": "6",
+    "explanation": {
+      "reasoning": "默认初值为 0；先加 2 得 2，再乘 3 得 6。",
+      "pitfall": "updateAndGet 的变换按调用顺序作用于当前原子值。",
+      "takeaway": "复杂更新可用原子更新函数表达，但应保持函数无副作用。"
+    },
+    "chapter": "锁与线程池",
+    "point": "锁、Executor 与并发容器"
+  },
+  {
+    "id": "J04-047",
+    "stage": "internals",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "两次更新后结果是多少？",
+    "code": "var map = new java.util.concurrent.ConcurrentHashMap<String, Integer>();\nmap.merge(\"hits\", 1, Integer::sum);\nmap.merge(\"hits\", 1, Integer::sum);\nSystem.out.println(map.get(\"hits\"));",
+    "languageVersion": 21,
+    "answer": "2",
+    "explanation": {
+      "reasoning": "两次 merge 对 hits 累加，最终为 2。",
+      "pitfall": "ConcurrentHashMap 不接受 null 键或 null 值。",
+      "takeaway": "对并发计数映射优先考虑原子 Map 操作。"
+    },
+    "chapter": "锁与线程池",
+    "point": "锁、Executor 与并发容器"
+  },
+  {
+    "id": "J04-048",
+    "stage": "internals",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "tryLock 成功后会打印什么？",
+    "code": "var lock = new java.util.concurrent.locks.ReentrantLock();\nboolean acquired = lock.tryLock();\ntry { System.out.println(acquired); } finally { if (acquired) lock.unlock(); }",
+    "languageVersion": 21,
+    "answer": "true",
+    "explanation": {
+      "reasoning": "当前线程持有新建且未被占用的锁，tryLock 返回 true。",
+      "pitfall": "只有成功获得锁的线程才能 unlock。",
+      "takeaway": "tryLock 分支需要处理获取失败时的替代路径。"
+    },
+    "chapter": "锁与线程池",
+    "point": "锁、Executor 与并发容器"
+  },
+  {
+    "id": "J04-049",
+    "stage": "internals",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "为什么线程池关闭后这次提交会被拒绝？",
+    "code": "var pool = java.util.concurrent.Executors.newSingleThreadExecutor();\npool.shutdown();\npool.submit(() -> work());",
+    "languageVersion": 21,
+    "answer": "把所有任务先提交，再调用 shutdown；或为新一批任务创建/获取仍开放的 Executor。",
+    "explanation": {
+      "reasoning": "shutdown 后 Executor 不再接受新任务。",
+      "pitfall": "shutdown 是生命周期状态转换，不是暂停。",
+      "takeaway": "先确定任务生产结束，再关闭执行器并等待完成。"
+    },
+    "chapter": "锁与线程池",
+    "point": "锁、Executor 与并发容器"
+  },
+  {
+    "id": "J04-050",
+    "stage": "internals",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "为什么异常发生时其他线程仍拿不到这把锁？",
+    "code": "lock.lock();\nwork();\nlock.unlock();",
+    "languageVersion": 21,
+    "answer": "改用 `lock.lock(); try { work(); } finally { lock.unlock(); }`。",
+    "explanation": {
+      "reasoning": "work 抛异常时控制流跳过 unlock，锁被当前线程持有。",
+      "pitfall": "显式 Lock 没有自动 try/finally 语法糖。",
+      "takeaway": "每次成功 lock 都确保存在 finally 解锁路径。"
+    },
+    "chapter": "锁与线程池",
+    "point": "锁、Executor 与并发容器"
+  }
+]

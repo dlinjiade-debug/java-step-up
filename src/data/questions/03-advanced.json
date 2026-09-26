@@ -1,0 +1,2104 @@
+[
+  {
+    "id": "J03-001",
+    "stage": "advanced",
+    "chapter": "泛型",
+    "point": "通配符上界",
+    "type": "single",
+    "difficulty": "巩固",
+    "stem": "关于下面的列表，哪项操作可以通过编译？",
+    "code": "List<? extends Number> numbers = new ArrayList<Integer>();",
+    "languageVersion": 21,
+    "options": [
+      {
+        "id": "A",
+        "text": "numbers.add(1)"
+      },
+      {
+        "id": "B",
+        "text": "numbers.add(1.5)"
+      },
+      {
+        "id": "C",
+        "text": "Number n = numbers.get(0)"
+      },
+      {
+        "id": "D",
+        "text": "numbers.add(new Object())"
+      }
+    ],
+    "answer": "C",
+    "explanation": {
+      "reasoning": "? extends Number 表示某种未知的 Number 子类型。读取时可以安全地按 Number 使用；写入任意具体 Number 都无法保证与实际子类型一致。",
+      "optionAnalysis": {
+        "A": "不能保证实际列表是 List<Integer>。",
+        "B": "不能保证实际列表是 List<Double>。",
+        "C": "正确：读出的元素至少可以视为 Number。",
+        "D": "Object 不是 Number 的子类型。"
+      },
+      "pitfall": "extends 通配符适合安全读取，不适合添加非 null 的具体值。",
+      "takeaway": "记住 PECS：生产者用 extends，消费者用 super。"
+    }
+  },
+  {
+    "id": "J03-002",
+    "stage": "advanced",
+    "chapter": "集合",
+    "point": "List.remove 重载",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "下面代码会输出什么？",
+    "code": "List<Integer> values = new ArrayList<>(List.of(7, 9, 11));\nSystem.out.println(values.remove(1) + \" \" + values);",
+    "languageVersion": 21,
+    "answer": "9 [7, 11]",
+    "explanation": {
+      "reasoning": "List 对整数参数提供 remove(int index) 与 remove(Object value) 两个重载。字面量 1 是 int，因此按下标删除索引 1 的元素 9，并返回被删元素。",
+      "pitfall": "调用 remove(1) 删除的是第二个元素，不是值为 1 的元素。",
+      "takeaway": "要按值删除 Integer，可显式传入 Integer.valueOf(value)。"
+    }
+  },
+  {
+    "id": "J03-003",
+    "stage": "advanced",
+    "chapter": "Map",
+    "point": "相同键覆盖",
+    "type": "output",
+    "difficulty": "基础",
+    "stem": "执行两次 put 后 map 的大小是多少？",
+    "code": "Map<String, Integer> map = new HashMap<>();\nmap.put(\"score\", 8);\nmap.put(\"score\", 10);\nSystem.out.println(map.size() + \" \" + map.get(\"score\"));",
+    "languageVersion": 21,
+    "answer": "1 10",
+    "explanation": {
+      "reasoning": "Map 中一个键最多对应一个当前值。第二次 put 使用相同键，会替换原来的 8，不会增加键的数量。",
+      "pitfall": "put 返回旧值（如有），但 size 统计键而不是 put 调用次数。",
+      "takeaway": "重复键写入会更新映射的值。"
+    }
+  },
+  {
+    "id": "J03-004",
+    "stage": "advanced",
+    "chapter": "Stream",
+    "point": "惰性中间操作",
+    "type": "multiple",
+    "difficulty": "巩固",
+    "stem": "关于 Stream 操作，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "filter 是中间操作，通常不会单独触发遍历"
+      },
+      {
+        "id": "B",
+        "text": "map 是终端操作"
+      },
+      {
+        "id": "C",
+        "text": "collect 和 forEach 都可以作为终端操作"
+      },
+      {
+        "id": "D",
+        "text": "一个 Stream 不能在终端操作后再次消费"
+      }
+    ],
+    "answer": [
+      "A",
+      "C",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "filter、map 等中间操作描述处理流水线；collect、forEach 会触发终端消费。Stream 被终端操作消费后不能再复用。",
+      "optionAnalysis": {
+        "A": "正确：需有终端操作才会开始处理元素。",
+        "B": "错误：map 是中间操作。",
+        "C": "正确：两者都可以结束流水线。",
+        "D": "正确：已消费的 Stream 不应再次使用。"
+      },
+      "pitfall": "声明中间操作链并不等于它已经执行。",
+      "takeaway": "Stream 通常是惰性流水线，由终端操作驱动。"
+    }
+  },
+  {
+    "id": "J03-005",
+    "stage": "advanced",
+    "chapter": "IO",
+    "point": "try-with-resources",
+    "type": "single",
+    "difficulty": "巩固",
+    "stem": "多个资源在 try-with-resources 中关闭时，顺序是什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "按声明顺序关闭"
+      },
+      {
+        "id": "B",
+        "text": "按声明的逆序关闭"
+      },
+      {
+        "id": "C",
+        "text": "只有第一个资源会关闭"
+      },
+      {
+        "id": "D",
+        "text": "资源不会自动关闭"
+      }
+    ],
+    "answer": "B",
+    "explanation": {
+      "reasoning": "try-with-resources 会自动关闭成功初始化的资源，并按声明顺序的逆序关闭。这一顺序适合先创建外层、后创建内层资源的场景。",
+      "optionAnalysis": {
+        "A": "与语言规定的关闭顺序相反。",
+        "B": "正确：后声明的资源先关闭。",
+        "C": "每个成功初始化的资源都会尝试关闭。",
+        "D": "自动关闭正是该语法的用途。"
+      },
+      "pitfall": "资源初始化失败时，只关闭已经成功初始化的资源。",
+      "takeaway": "用 try-with-resources 管理 AutoCloseable 资源。"
+    }
+  },
+  {
+    "id": "J03-006",
+    "stage": "advanced",
+    "chapter": "Map",
+    "point": "可变键与哈希定位",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "把键对象的参与哈希字段修改后，为什么 get 可能返回 null？如何避免？",
+    "code": "Key key = new Key(1);\nMap<Key, String> map = new HashMap<>();\nmap.put(key, \"value\");\nkey.id = 2;\nSystem.out.println(map.get(key));",
+    "languageVersion": 21,
+    "answer": "键插入时所在桶由当时的 hashCode 决定。修改参与 equals/hashCode 的字段后，查找会使用新的哈希值，可能定位到别的桶。作为 Map 键的相等性字段应保持不变，通常让键不可变。",
+    "explanation": {
+      "reasoning": "HashMap 先按 hash 定位，再比较键是否相等。键的哈希和相等规则在存放期间变化，会破坏查找前提。",
+      "pitfall": "即使仍持有同一个对象引用，也不代表它能从原桶中被正确找到。",
+      "takeaway": "用不可变对象作为哈希键，或避免在映射存续期间修改键的相等性字段。"
+    }
+  },
+  {
+    "id": "J03-007",
+    "stage": "advanced",
+    "chapter": "Stream",
+    "point": "filter 与 map 组合",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "这条流水线输出什么？",
+    "code": "int total = List.of(2, 4, 6).stream()\n    .filter(n -> n % 4 == 0)\n    .map(n -> n / 2)\n    .mapToInt(Integer::intValue)\n    .sum();\nSystem.out.println(total);",
+    "languageVersion": 21,
+    "answer": "2",
+    "explanation": {
+      "reasoning": "filter 只保留能被 4 整除的元素 4。map 将它变成 2，mapToInt 转成 IntStream，sum 得到 2。",
+      "pitfall": "按顺序写出每个中间流的元素，避免跳过筛选条件。",
+      "takeaway": "filter 改变元素集合，map 改变元素值，sum 汇总最终元素。"
+    }
+  },
+  {
+    "id": "J03-008",
+    "stage": "advanced",
+    "chapter": "泛型",
+    "point": "泛型不变性",
+    "type": "single",
+    "difficulty": "基础",
+    "stem": "下面哪项关于 List<Integer> 与 List<Number> 的关系正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "List<Integer> 可以直接赋给 List<Number>"
+      },
+      {
+        "id": "B",
+        "text": "List<Number> 可以直接赋给 List<Integer>"
+      },
+      {
+        "id": "C",
+        "text": "两者是不兼容的不同参数化类型"
+      },
+      {
+        "id": "D",
+        "text": "只有使用原始类型才能编译"
+      }
+    ],
+    "answer": "C",
+    "explanation": {
+      "reasoning": "Java 泛型默认是不变的。Integer 是 Number 的子类，并不意味着 List<Integer> 是 List<Number> 的子类。需要通过通配符表达受限的协变读取。",
+      "optionAnalysis": {
+        "A": "不成立，会允许向 List<Number> 添加 Double，破坏原列表类型安全。",
+        "B": "同样不成立。",
+        "C": "正确：两种泛型实参不同，不能直接赋值。",
+        "D": "原始类型会丢失类型安全，不是唯一解决方案。"
+      },
+      "pitfall": "不要把元素类型的继承关系直接套用到泛型容器。",
+      "takeaway": "Java 泛型类型默认不变。"
+    }
+  },
+  {
+    "id": "J03-009",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "`List.of(1, 2)` 返回的列表有什么限制？",
+    "options": [
+      {
+        "id": "A",
+        "text": "不可修改，且不能包含 null。"
+      },
+      {
+        "id": "B",
+        "text": "可添加元素但不能删除。"
+      },
+      {
+        "id": "C",
+        "text": "总是由 ArrayList 实现。"
+      },
+      {
+        "id": "D",
+        "text": "内容会自动排序。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "List.of 创建不可修改列表，且会拒绝 null 元素。",
+      "pitfall": "不可修改列表与可修改副本是不同对象策略。",
+      "takeaway": "明确列表是只读快照还是可变工作集合。"
+    },
+    "chapter": "集合",
+    "point": "List 与可变性",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-010",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "`Arrays.asList(array)` 返回的列表具有什么特性？",
+    "options": [
+      {
+        "id": "A",
+        "text": "固定大小，元素位置与原数组相互关联。"
+      },
+      {
+        "id": "B",
+        "text": "可任意增删且完全复制数组。"
+      },
+      {
+        "id": "C",
+        "text": "自动使用 Set 消除重复。"
+      },
+      {
+        "id": "D",
+        "text": "按字典序对数组排序。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "Arrays.asList 使用给定数组支持固定大小列表，set 可更新对应数组槽位。",
+      "pitfall": "add 与 remove 会改变大小，因此通常不支持。",
+      "takeaway": "需要独立可变列表时可用 `new ArrayList<>(...)`。"
+    },
+    "chapter": "集合",
+    "point": "List 与可变性",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-011",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "关于 List，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "List 允许按索引访问元素。"
+      },
+      {
+        "id": "B",
+        "text": "`List.of` 创建的列表支持 set。"
+      },
+      {
+        "id": "C",
+        "text": "List 可以包含重复元素。"
+      },
+      {
+        "id": "D",
+        "text": "`ArrayList` 的 `add` 通常会追加到末尾。"
+      }
+    ],
+    "answer": [
+      "A",
+      "C",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "List 保留位置次序且允许重复；ArrayList 的常见 add 会追加元素。",
+      "pitfall": "接口 List 不代表某一具体可变性实现。",
+      "takeaway": "调用修改操作前确认实际列表实现是否可变。"
+    },
+    "chapter": "集合",
+    "point": "List 与可变性",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-012",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "关于 `List<Integer>` 中的删除重载，哪些描述正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "`remove(1)` 选择按索引删除。"
+      },
+      {
+        "id": "B",
+        "text": "`remove(Integer.valueOf(1))` 选择按对象删除。"
+      },
+      {
+        "id": "C",
+        "text": "两个写法都一定删除值为 1 的元素。"
+      },
+      {
+        "id": "D",
+        "text": "若列表为空，`remove(1)` 会抛 IndexOutOfBoundsException。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "remove(int) 删除索引；remove(Object) 删除首次匹配对象。",
+      "pitfall": "基本类型实参 1 优先匹配 int 索引重载。",
+      "takeaway": "泛型包装类型列表里，明确对象删除时写出 Integer.valueOf。"
+    },
+    "chapter": "集合",
+    "point": "List 与可变性",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-013",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "最终列表是什么？",
+    "code": "var items = new java.util.ArrayList<>(java.util.List.of(2, 4));\nitems.add(6);\nitems.set(0, 1);\nSystem.out.println(items);",
+    "languageVersion": 21,
+    "answer": "[1, 4, 6]",
+    "explanation": {
+      "reasoning": "先复制为可变 ArrayList，再追加 6 并把索引 0 替换为 1。",
+      "pitfall": "List.of 本身不可修改，外层 ArrayList 才能增删。",
+      "takeaway": "追踪列表操作时记录每次索引和值的变化。"
+    },
+    "chapter": "集合",
+    "point": "List 与可变性"
+  },
+  {
+    "id": "J03-014",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "数组和列表依次输出什么？",
+    "code": "Integer[] values = {1, 2};\nvar view = java.util.Arrays.asList(values);\nview.set(0, 9);\nSystem.out.println(values[0] + \":\" + view.size());",
+    "languageVersion": 21,
+    "answer": "9:2",
+    "explanation": {
+      "reasoning": "Arrays.asList 的固定大小视图共享原数组槽位；set 改变 values[0]。",
+      "pitfall": "视图允许替换元素，但不能改变列表长度。",
+      "takeaway": "明确区分视图与复制。"
+    },
+    "chapter": "集合",
+    "point": "List 与可变性"
+  },
+  {
+    "id": "J03-015",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么 `add` 会抛 UnsupportedOperationException？",
+    "code": "List<String> names = List.of(\"Ada\");\nnames.add(\"Lin\");",
+    "languageVersion": 21,
+    "answer": "改用 `new ArrayList<>(List.of(\"Ada\"))` 创建可变列表后再添加。",
+    "explanation": {
+      "reasoning": "List.of 返回不可修改列表，静态类型 List 不保证可变。",
+      "pitfall": "UnsupportedOperationException 是实现不支持该可选操作的信号。",
+      "takeaway": "容器类型声明不能说明它是否可变。"
+    },
+    "chapter": "集合",
+    "point": "List 与可变性"
+  },
+  {
+    "id": "J03-016",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "怎样既保留 Arrays.asList 的元素，又能增删？",
+    "code": "var fixed = java.util.Arrays.asList(\"a\", \"b\");\nfixed.add(\"c\");",
+    "languageVersion": 21,
+    "answer": "复制到新 ArrayList：`var editable = new ArrayList<>(fixed); editable.add(\"c\");`。",
+    "explanation": {
+      "reasoning": "Arrays.asList 返回固定大小列表，不能通过 add 扩容。",
+      "pitfall": "直接修改该视图的既有元素仍会反映到支持它的数组。",
+      "takeaway": "对外部数组视图先复制，再执行结构性修改。"
+    },
+    "chapter": "集合",
+    "point": "List 与可变性"
+  },
+  {
+    "id": "J03-017",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "HashSet 判断两个普通对象是否重复时主要依赖什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "先比较 hashCode，再在同桶候选间使用 equals。"
+      },
+      {
+        "id": "B",
+        "text": "只比较对象的内存地址文本。"
+      },
+      {
+        "id": "C",
+        "text": "只比较 toString 输出。"
+      },
+      {
+        "id": "D",
+        "text": "总按插入顺序比较。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "哈希集合通过 hashCode 定位候选，再用 equals 判断相等性。",
+      "pitfall": "hashCode 相同并不保证 equals 为 true。",
+      "takeaway": "自定义集合元素应正确实现 equals 与 hashCode。"
+    },
+    "chapter": "集合",
+    "point": "Set 与相等性",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-018",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "需要稳定保留插入顺序的 Set，常用哪种实现？",
+    "options": [
+      {
+        "id": "A",
+        "text": "LinkedHashSet。"
+      },
+      {
+        "id": "B",
+        "text": "HashSet。"
+      },
+      {
+        "id": "C",
+        "text": "TreeSet。"
+      },
+      {
+        "id": "D",
+        "text": "IdentityHashMap。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "LinkedHashSet 维护插入顺序；HashSet 不承诺迭代顺序，TreeSet 按排序规则迭代。",
+      "pitfall": "Set 接口本身不承诺具体遍历顺序。",
+      "takeaway": "根据顺序需求选择实现，而非依赖偶然观察到的顺序。"
+    },
+    "chapter": "集合",
+    "point": "Set 与相等性",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-019",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "关于 Set，哪些描述正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "Set 通常不允许按 equals 相等的元素重复出现。"
+      },
+      {
+        "id": "B",
+        "text": "HashSet 承诺按插入顺序迭代。"
+      },
+      {
+        "id": "C",
+        "text": "TreeSet 通常依据比较器或自然顺序确定唯一性。"
+      },
+      {
+        "id": "D",
+        "text": "LinkedHashSet 维护可预测的插入迭代顺序。"
+      }
+    ],
+    "answer": [
+      "A",
+      "C",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "TreeSet 通过排序比较确定元素组织；LinkedHashSet 保留插入顺序。",
+      "pitfall": "HashSet 不保证迭代顺序。",
+      "takeaway": "需要稳定顺序时把要求写在实现选择中。"
+    },
+    "chapter": "集合",
+    "point": "Set 与相等性",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-020",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "向 HashSet 存放自定义对象时，哪些做法可靠？",
+    "options": [
+      {
+        "id": "A",
+        "text": "为值相等的对象实现一致的 equals 和 hashCode。"
+      },
+      {
+        "id": "B",
+        "text": "对象存入后修改参与哈希的字段可能破坏查找。"
+      },
+      {
+        "id": "C",
+        "text": "只重写 toString 即可定义去重规则。"
+      },
+      {
+        "id": "D",
+        "text": "哈希碰撞后集合还会用 equals 区分对象。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "HashSet 同时使用散列和相等性；参与两者的状态应稳定。",
+      "pitfall": "toString 仅用于文本表示，不定义对象相等性。",
+      "takeaway": "优先使用不可变的集合键对象。"
+    },
+    "chapter": "集合",
+    "point": "Set 与相等性",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-021",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "集合大小是多少？",
+    "code": "var values = new java.util.HashSet<>(java.util.List.of(2, 2, 3, 3, 3));\nSystem.out.println(values.size());",
+    "languageVersion": 21,
+    "answer": "2",
+    "explanation": {
+      "reasoning": "Set 保留唯一元素 2 和 3。",
+      "pitfall": "输入列表中的重复项不会成为集合中的重复元素。",
+      "takeaway": "Set size 反映相等性规则下的不同元素数。"
+    },
+    "chapter": "集合",
+    "point": "Set 与相等性"
+  },
+  {
+    "id": "J03-022",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "程序按什么顺序输出？",
+    "code": "var values = new java.util.LinkedHashSet<>(java.util.List.of(\"b\", \"a\", \"b\", \"c\"));\nSystem.out.println(values);",
+    "languageVersion": 21,
+    "answer": "[b, a, c]",
+    "explanation": {
+      "reasoning": "重复的第二个 b 不再插入，剩余元素按首次插入顺序迭代。",
+      "pitfall": "去重不会把元素按字母排序。",
+      "takeaway": "需要排序时选用 TreeSet 或显式排序。"
+    },
+    "chapter": "集合",
+    "point": "Set 与相等性"
+  },
+  {
+    "id": "J03-023",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么改变 key.id 后 contains 可能返回 false？",
+    "code": "var set = new java.util.HashSet<Key>();\nKey key = new Key(1);\nset.add(key);\nkey.id = 2;",
+    "languageVersion": 21,
+    "answer": "不要修改参与 equals/hashCode 的字段；可使用不可变 Key，或先 remove 后修改再 add。",
+    "explanation": {
+      "reasoning": "修改 id 后 hashCode 变化，元素仍在旧桶中。",
+      "pitfall": "即使同一对象引用，哈希桶定位也可能与当前哈希值不一致。",
+      "takeaway": "哈希集合中的键在驻留期间保持相等性状态不变。"
+    },
+    "chapter": "集合",
+    "point": "Set 与相等性"
+  },
+  {
+    "id": "J03-024",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "怎样让这个 Set 按字母顺序迭代？",
+    "code": "var tags = new java.util.HashSet<>(java.util.List.of(\"z\", \"a\", \"m\"));",
+    "languageVersion": 21,
+    "answer": "使用 `new TreeSet<>(tags)`，或将元素复制到列表后排序。",
+    "explanation": {
+      "reasoning": "HashSet 不承诺稳定或自然排序顺序。",
+      "pitfall": "偶然出现的某次迭代顺序不能作为契约。",
+      "takeaway": "将排序需求交给有序容器或显式排序操作。"
+    },
+    "chapter": "集合",
+    "point": "Set 与相等性"
+  },
+  {
+    "id": "J03-025",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "调用 `map.get(key)` 返回 null，可能表示什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "键不存在，或键存在但映射到 null（若该实现允许 null）。"
+      },
+      {
+        "id": "B",
+        "text": "一定表示键存在且值是 null。"
+      },
+      {
+        "id": "C",
+        "text": "一定表示 Map 为空。"
+      },
+      {
+        "id": "D",
+        "text": "必然抛出异常。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "get 返回 null 时通常无法单独区分不存在和映射为 null，可用 containsKey 判断。",
+      "pitfall": "不同 Map 实现对 null 键和值的支持不同。",
+      "takeaway": "对可能存在空值的映射先检查 containsKey。"
+    },
+    "chapter": "Map",
+    "point": "映射更新与查找",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-026",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "`Map.merge(key, value, remappingFunction)` 常用于什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "键缺失时加入给定值，已存在时按函数合并。"
+      },
+      {
+        "id": "B",
+        "text": "把 Map 按键排序。"
+      },
+      {
+        "id": "C",
+        "text": "总是无条件覆盖成 value。"
+      },
+      {
+        "id": "D",
+        "text": "删除所有 null 值。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "merge 对缺失或 null 映射建立值，对已有非 null 值执行合并函数。",
+      "pitfall": "合并函数返回 null 时会删除该映射。",
+      "takeaway": "计数累加常用 `merge(key, 1, Integer::sum)`。"
+    },
+    "chapter": "Map",
+    "point": "映射更新与查找",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-027",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "关于 Map，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "一个键最多映射到一个值。"
+      },
+      {
+        "id": "B",
+        "text": "`put` 返回该键先前映射的值。"
+      },
+      {
+        "id": "C",
+        "text": "Map 的所有实现都允许 null 键。"
+      },
+      {
+        "id": "D",
+        "text": "`containsKey` 可区分不存在与映射到 null 的键。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "Map 以键唯一性组织映射，put 可返回旧值，containsKey 可判断键是否存在。",
+      "pitfall": "例如 ConcurrentHashMap 不允许 null 键和值。",
+      "takeaway": "阅读具体实现契约，不要假设接口所有实现支持相同 null 策略。"
+    },
+    "chapter": "Map",
+    "point": "映射更新与查找",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-028",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "关于 HashMap 遍历，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "可以遍历 `entrySet()` 同时取得键和值。"
+      },
+      {
+        "id": "B",
+        "text": "普通 HashMap 不保证迭代顺序。"
+      },
+      {
+        "id": "C",
+        "text": "遍历时对 Map 结构性修改通常安全且受支持。"
+      },
+      {
+        "id": "D",
+        "text": "按键排序需要显式选用有序 Map 或排序键。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "entrySet 能直接读取键值对；HashMap 不提供排序保证。",
+      "pitfall": "结构性修改可能触发 fail-fast 检测，应使用迭代器 remove 或并发设计。",
+      "takeaway": "迭代顺序和并发修改都应按集合契约处理。"
+    },
+    "chapter": "Map",
+    "point": "映射更新与查找",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-029",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "打印的映射是什么？",
+    "code": "var counts = new java.util.HashMap<String, Integer>();\ncounts.merge(\"java\", 1, Integer::sum);\ncounts.merge(\"java\", 1, Integer::sum);\nSystem.out.println(counts.get(\"java\"));",
+    "languageVersion": 21,
+    "answer": "2",
+    "explanation": {
+      "reasoning": "第一次 merge 建立计数 1，第二次用 Integer::sum 合并为 2。",
+      "pitfall": "键第一次出现时不会调用已有值合并函数。",
+      "takeaway": "merge 简化存在则更新、缺失则初始化的计数逻辑。"
+    },
+    "chapter": "Map",
+    "point": "映射更新与查找"
+  },
+  {
+    "id": "J03-030",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "输出结果是什么？",
+    "code": "var map = new java.util.LinkedHashMap<String, Integer>();\nmap.put(\"x\", 1); map.put(\"y\", 2); map.put(\"x\", 3);\nSystem.out.println(map);",
+    "languageVersion": 21,
+    "answer": "{x=3, y=2}",
+    "explanation": {
+      "reasoning": "更新 x 的值不会重新插入键，插入顺序仍为 x 后 y。",
+      "pitfall": "LinkedHashMap 默认保持插入顺序；访问顺序模式需另行配置。",
+      "takeaway": "更新映射值与改变键迭代位置要分别判断。"
+    },
+    "chapter": "Map",
+    "point": "映射更新与查找"
+  },
+  {
+    "id": "J03-031",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么这段代码在缺失键时会发生空指针异常？",
+    "code": "Integer count = counts.get(\"missing\");\nint next = count + 1;",
+    "languageVersion": 21,
+    "answer": "先用 `getOrDefault(\"missing\", 0)`，或使用 merge/computeIfAbsent 初始化。",
+    "explanation": {
+      "reasoning": "键不存在时 get 返回 null，自动拆箱会触发 NullPointerException。",
+      "pitfall": "包装类型可能为 null，拆箱前应确认值存在。",
+      "takeaway": "用 getOrDefault 表达缺失映射的默认值。"
+    },
+    "chapter": "Map",
+    "point": "映射更新与查找"
+  },
+  {
+    "id": "J03-032",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "怎样在保留 Map 的同时安全删除所有值为负数的映射？",
+    "code": "for (var entry : map.entrySet()) {\n    if (entry.getValue() < 0) map.remove(entry.getKey());\n}",
+    "languageVersion": 21,
+    "answer": "使用 `map.entrySet().removeIf(entry -> entry.getValue() < 0);`，或通过 Iterator.remove 删除。",
+    "explanation": {
+      "reasoning": "增强 for 遍历期间直接结构性修改 Map 可能触发 ConcurrentModificationException。",
+      "pitfall": "fail-fast 是错误检测机制，不提供并发安全保证。",
+      "takeaway": "通过当前迭代器或集合视图支持的删除操作修改结构。"
+    },
+    "chapter": "Map",
+    "point": "映射更新与查找"
+  },
+  {
+    "id": "J03-033",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "为什么不能把 `List<Integer>` 赋给 `List<Number>`？",
+    "options": [
+      {
+        "id": "A",
+        "text": "泛型默认是不变的，避免通过 List<Number> 写入 Double 到 Integer 列表。"
+      },
+      {
+        "id": "B",
+        "text": "Integer 不是 Number 的子类。"
+      },
+      {
+        "id": "C",
+        "text": "List 不能使用引用类型。"
+      },
+      {
+        "id": "D",
+        "text": "泛型只适用于数组。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "Integer 是 Number 子类，但 List<Integer> 并不是 List<Number> 子类。",
+      "pitfall": "若允许协变赋值，接收端就可能写入不匹配的元素。",
+      "takeaway": "区分元素类型继承关系和参数化容器类型关系。"
+    },
+    "chapter": "泛型",
+    "point": "类型参数与通配符",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-034",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "方法只需要读取 Number 列表中的元素，常用哪种参数？",
+    "options": [
+      {
+        "id": "A",
+        "text": "`List<? extends Number>`。"
+      },
+      {
+        "id": "B",
+        "text": "`List<?>` 并允许写入 Double。"
+      },
+      {
+        "id": "C",
+        "text": "`List<Number>`。"
+      },
+      {
+        "id": "D",
+        "text": "`List<? super Integer>` 并把读出值当 Integer。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "上界通配符表示元素类型是 Number 或其子类型，适合从集合读取 Number。",
+      "pitfall": "通过 extends 声明上界，不意味着集合只含直接的 Number。",
+      "takeaway": "生产者用 extends：从源集合取值。"
+    },
+    "chapter": "泛型",
+    "point": "类型参数与通配符",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-035",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "关于通配符，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "`? extends T` 适合读取为 T。"
+      },
+      {
+        "id": "B",
+        "text": "`? super T` 可以安全写入 T。"
+      },
+      {
+        "id": "C",
+        "text": "从 `List<? extends Number>` 中可直接添加 Integer。"
+      },
+      {
+        "id": "D",
+        "text": "`List<?>` 可读取元素为 Object。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "上界可安全读为 T；下界可安全写入 T；未知类型集合读取只能保证为 Object。",
+      "pitfall": "extends 集合的具体子类型未知，通常不能安全添加非 null 值。",
+      "takeaway": "PECS：生产者用 extends，消费者用 super。"
+    },
+    "chapter": "泛型",
+    "point": "类型参数与通配符",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-036",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "以下哪些设计符合泛型规则？",
+    "options": [
+      {
+        "id": "A",
+        "text": "方法可声明自己的类型参数 `<T> T first(List<T> values)`。"
+      },
+      {
+        "id": "B",
+        "text": "`List<String>` 可以安全当作 `List<Object>`。"
+      },
+      {
+        "id": "C",
+        "text": "限定参数可以写成 `<T extends Number>`。"
+      },
+      {
+        "id": "D",
+        "text": "`List<String>` 与 `List<Integer>` 在运行时通常共用擦除后的 List 类。"
+      }
+    ],
+    "answer": [
+      "A",
+      "C",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "类型参数可在方法或类声明；T 可受边界约束，运行时采用类型擦除。",
+      "pitfall": "泛型不变，String 列表不是 Object 列表。",
+      "takeaway": "避免向参数化列表写入运行时不匹配元素。"
+    },
+    "chapter": "泛型",
+    "point": "类型参数与通配符",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-037",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "编译期推断出的 first 返回值是什么？",
+    "code": "static <T> T first(java.util.List<T> items) { return items.get(0); }\nString name = first(java.util.List.of(\"A\", \"B\"));\nSystem.out.println(name);",
+    "languageVersion": 21,
+    "answer": "A",
+    "explanation": {
+      "reasoning": "实参列表的元素类型为 String，类型参数 T 推断为 String，返回首元素 A。",
+      "pitfall": "泛型提供编译期类型关系，不需要在调用处强转。",
+      "takeaway": "沿着实参类型跟踪类型参数推断。"
+    },
+    "chapter": "泛型",
+    "point": "类型参数与通配符"
+  },
+  {
+    "id": "J03-038",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "下面读取到的值是什么？",
+    "code": "static double total(java.util.List<? extends Number> xs) { return xs.get(0).doubleValue(); }\nSystem.out.println(total(java.util.List.of(3)));",
+    "languageVersion": 21,
+    "answer": "3.0",
+    "explanation": {
+      "reasoning": "列表元素类型是 Integer，Integer 继承 Number 并提供 doubleValue。",
+      "pitfall": "上界通配符适用于读取，不代表可以添加任意 Number。",
+      "takeaway": "对多个数值子类型统一读取时使用 Number 上界。"
+    },
+    "chapter": "泛型",
+    "point": "类型参数与通配符"
+  },
+  {
+    "id": "J03-039",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么无法把这个 List 传给方法？",
+    "code": "static void print(java.util.List<Number> values) {}\njava.util.List<Integer> ints = java.util.List.of(1, 2);\nprint(ints);",
+    "languageVersion": 21,
+    "answer": "若只读取，参数改为 `List<? extends Number>`；若要写入不同 Number，创建 `List<Number>`。",
+    "explanation": {
+      "reasoning": "List<Integer> 与 List<Number> 泛型不变，不能直接赋值。",
+      "pitfall": "把集合当作只读源或可写目标后，再设计通配符方向。",
+      "takeaway": "用 PECS 规则表达调用方的读取或写入意图。"
+    },
+    "chapter": "泛型",
+    "point": "类型参数与通配符"
+  },
+  {
+    "id": "J03-040",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么不能重载这两个方法？",
+    "code": "void show(java.util.List<String> values) {}\nvoid show(java.util.List<Integer> values) {}",
+    "languageVersion": 21,
+    "answer": "改为不同方法名，或使用不同的可区分参数列表；两者擦除后签名冲突。",
+    "explanation": {
+      "reasoning": "泛型类型实参在运行时擦除，两种签名都会变成 show(List)。",
+      "pitfall": "不能依赖运行时泛型参数来区分方法重载。",
+      "takeaway": "检查擦除后的方法签名是否相同。"
+    },
+    "chapter": "泛型",
+    "point": "类型参数与通配符"
+  },
+  {
+    "id": "J03-041",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "Stream 中间操作（如 filter、map）通常何时执行？",
+    "options": [
+      {
+        "id": "A",
+        "text": "遇到终端操作时惰性执行。"
+      },
+      {
+        "id": "B",
+        "text": "调用 filter 的瞬间立刻遍历全部元素。"
+      },
+      {
+        "id": "C",
+        "text": "只在关闭 Stream 时执行。"
+      },
+      {
+        "id": "D",
+        "text": "每次创建 Stream 都自动保存到集合。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "中间操作构建流水线；终端操作触发遍历与计算。",
+      "pitfall": "若没有终端操作，通常不会执行实际遍历。",
+      "takeaway": "先构造 transformation，再用 collect、count 或 forEach 结束。"
+    },
+    "chapter": "Stream",
+    "point": "流水线求值与转换",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-042",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "要把 `List<List<T>>` 转为一个元素流，最合适的操作通常是什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "flatMap。"
+      },
+      {
+        "id": "B",
+        "text": "filter。"
+      },
+      {
+        "id": "C",
+        "text": "peek。"
+      },
+      {
+        "id": "D",
+        "text": "distinct。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "flatMap 把每个输入映射为流，再将这些流合并成单层流。",
+      "pitfall": "map 会保留嵌套层次，结果可能是 Stream<Stream<T>>。",
+      "takeaway": "将一对多映射展平时使用 flatMap。"
+    },
+    "chapter": "Stream",
+    "point": "流水线求值与转换",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-043",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "关于 Stream，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "同一 Stream 通常只能消费一次。"
+      },
+      {
+        "id": "B",
+        "text": "filter 和 map 是中间操作。"
+      },
+      {
+        "id": "C",
+        "text": "count 是终端操作。"
+      },
+      {
+        "id": "D",
+        "text": "调用 sorted 后原始 List 一定被原地排序。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "Stream 具有一次性流水线；中间操作组合，终端操作触发求值。",
+      "pitfall": "Stream 排序产生流水线结果，不修改源 List。",
+      "takeaway": "需要原地排序时使用集合排序 API。"
+    },
+    "chapter": "Stream",
+    "point": "流水线求值与转换",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-044",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "关于 Stream 遍历顺序与状态，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "有序流的 forEachOrdered 会按遇到顺序执行动作。"
+      },
+      {
+        "id": "B",
+        "text": "在并行流 lambda 中修改共享 ArrayList 通常不安全。"
+      },
+      {
+        "id": "C",
+        "text": "无状态的 map/filter 通常更容易并行处理。"
+      },
+      {
+        "id": "D",
+        "text": "Stream API 保证任意有副作用流水线结果确定。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "顺序语义与共享状态很重要；无状态操作更适合并行分段执行。",
+      "pitfall": "外部共享副作用会引入竞态和不可预测顺序。",
+      "takeaway": "优先写无副作用转换，终端收集由框架管理。"
+    },
+    "chapter": "Stream",
+    "point": "流水线求值与转换",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-045",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "结果列表是什么？",
+    "code": "var result = java.util.List.of(1, 2, 3, 4).stream()\n    .filter(n -> n % 2 == 0).map(n -> n * 10).toList();\nSystem.out.println(result);",
+    "languageVersion": 21,
+    "answer": "[20, 40]",
+    "explanation": {
+      "reasoning": "filter 保留偶数 2、4，map 将其乘 10。",
+      "pitfall": "toList 返回的列表不可修改。",
+      "takeaway": "按流水线顺序追踪每个元素经过的操作。"
+    },
+    "chapter": "Stream",
+    "point": "流水线求值与转换"
+  },
+  {
+    "id": "J03-046",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "count 的结果是多少？",
+    "code": "long count = java.util.List.of(\"a\", \"ab\", \"b\").stream()\n    .filter(s -> s.length() == 1).count();\nSystem.out.println(count);",
+    "languageVersion": 21,
+    "answer": "2",
+    "explanation": {
+      "reasoning": "长度为 1 的元素有 a 和 b，共两个。",
+      "pitfall": "count 是终端操作，运行后该 Stream 不能再次使用。",
+      "takeaway": "把中间筛选条件转成逐元素判断。"
+    },
+    "chapter": "Stream",
+    "point": "流水线求值与转换"
+  },
+  {
+    "id": "J03-047",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么这个 Stream 第二次终端操作会抛 IllegalStateException？",
+    "code": "var stream = java.util.List.of(1, 2).stream();\nlong count = stream.count();\nstream.forEach(System.out::println);",
+    "languageVersion": 21,
+    "answer": "每个终端操作创建并使用一个新的 Stream：再次调用 `list.stream()` 后再遍历。",
+    "explanation": {
+      "reasoning": "终端操作已消费 stream，Stream 不可复用。",
+      "pitfall": "保存源集合，而不是缓存已经消费的流。",
+      "takeaway": "每条流水线只执行一次。"
+    },
+    "chapter": "Stream",
+    "point": "流水线求值与转换"
+  },
+  {
+    "id": "J03-048",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么没有打印任何内容？",
+    "code": "java.util.List.of(1, 2, 3).stream()\n    .peek(System.out::println);",
+    "languageVersion": 21,
+    "answer": "追加终端操作，例如 `.forEach(System.out::println)`，或收集结果。",
+    "explanation": {
+      "reasoning": "peek 是中间操作，不会自行触发 Stream 求值。",
+      "pitfall": "调试时不要把 peek 当作终端输出操作。",
+      "takeaway": "流水线必须由终端操作启动。"
+    },
+    "chapter": "Stream",
+    "point": "流水线求值与转换"
+  },
+  {
+    "id": "J03-049",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "`Collectors.groupingBy(classifier, counting())` 的结果通常是什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "按分类键映射到 Long 计数的 Map。"
+      },
+      {
+        "id": "B",
+        "text": "只保留第一个元素的 List。"
+      },
+      {
+        "id": "C",
+        "text": "按键自然排序的 Set。"
+      },
+      {
+        "id": "D",
+        "text": "一个不可重复消费的 Stream。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "groupingBy 按 classifier 的结果分组，counting 为每组计算元素数。",
+      "pitfall": "分组 Map 的具体实现及顺序应查看 API 契约，不要假设排序。",
+      "takeaway": "聚合目标是分类统计时用 groupingBy 配合下游 collector。"
+    },
+    "chapter": "Stream",
+    "point": "聚合、去重与排序",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-050",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "没有初始值的 `Stream.reduce` 为什么通常返回 Optional？",
+    "options": [
+      {
+        "id": "A",
+        "text": "流可能为空，无法确定累积结果。"
+      },
+      {
+        "id": "B",
+        "text": "reduce 只能处理引用类型。"
+      },
+      {
+        "id": "C",
+        "text": "Optional 表示结果一定是 null。"
+      },
+      {
+        "id": "D",
+        "text": "并行流不支持直接返回值。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "无初始值 reduce 在空流上没有结果，因此用 Optional 表示可能不存在。",
+      "pitfall": "带 identity 的 reduce 在空流上可返回 identity。",
+      "takeaway": "选择 reduce 重载时明确空流语义。"
+    },
+    "chapter": "Stream",
+    "point": "聚合、去重与排序",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-051",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "关于排序与去重，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "sorted 可以接受 Comparator。"
+      },
+      {
+        "id": "B",
+        "text": "distinct 使用元素的 equals 判断重复。"
+      },
+      {
+        "id": "C",
+        "text": "Stream.sorted 会原地修改源集合。"
+      },
+      {
+        "id": "D",
+        "text": "Comparator.comparing 可按对象属性构造比较器。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "Stream distinct 依赖相等性，sorted 通过自然顺序或比较器产生排序流。",
+      "pitfall": "集合源不会因 Stream sorted 被直接修改。",
+      "takeaway": "选择比较键时确认 null 值和相同排序键的处理。"
+    },
+    "chapter": "Stream",
+    "point": "聚合、去重与排序",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-052",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "使用 collector 汇总时，哪些做法合理？",
+    "options": [
+      {
+        "id": "A",
+        "text": "`Collectors.toList()` 收集流元素到 List。"
+      },
+      {
+        "id": "B",
+        "text": "`Collectors.joining(\",\")` 可连接字符串流。"
+      },
+      {
+        "id": "C",
+        "text": "`Collectors.toMap` 遇到重复键时若无合并函数可能抛异常。"
+      },
+      {
+        "id": "D",
+        "text": "任何 Collector 都保证返回的集合可变且线程安全。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "不同 collector 表达不同终结汇总；toMap 重复键需明确合并策略。",
+      "pitfall": "返回集合的可变性和并发保证依 collector 而定。",
+      "takeaway": "处理可能重复的键时提供 merge function。"
+    },
+    "chapter": "Stream",
+    "point": "聚合、去重与排序",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-053",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "按长度分组后的 key 2 对应多少元素？",
+    "code": "var grouped = java.util.List.of(\"a\", \"bc\", \"de\", \"f\").stream()\n    .collect(java.util.stream.Collectors.groupingBy(String::length, java.util.stream.Collectors.counting()));\nSystem.out.println(grouped.get(2));",
+    "languageVersion": 21,
+    "answer": "2",
+    "explanation": {
+      "reasoning": "长度为 2 的字符串有 bc 和 de。",
+      "pitfall": "counting 的统计结果类型为 Long。",
+      "takeaway": "先确定分类键，再统计每组元素数。"
+    },
+    "chapter": "Stream",
+    "point": "聚合、去重与排序"
+  },
+  {
+    "id": "J03-054",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "连接后的字符串是什么？",
+    "code": "String result = java.util.List.of(\"A\", \"B\", \"C\").stream()\n    .collect(java.util.stream.Collectors.joining(\"-\"));\nSystem.out.println(result);",
+    "languageVersion": 21,
+    "answer": "A-B-C",
+    "explanation": {
+      "reasoning": "joining 以连字符把流中三个字符串按遇到顺序连接。",
+      "pitfall": "遇到顺序只有在有序源与对应操作中才有确定意义。",
+      "takeaway": "格式化拼接比在 forEach 中修改共享 StringBuilder 更清晰。"
+    },
+    "chapter": "Stream",
+    "point": "聚合、去重与排序"
+  },
+  {
+    "id": "J03-055",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么 toMap 无法决定相同首字母的值？如何保留较长字符串？",
+    "code": "var map = java.util.List.of(\"ant\", \"apple\").stream()\n    .collect(java.util.stream.Collectors.toMap(s -> s.substring(0, 1), s -> s));",
+    "languageVersion": 21,
+    "answer": "给 toMap 增加合并函数，例如 `(a, b) -> a.length() >= b.length() ? a : b`。",
+    "explanation": {
+      "reasoning": "两个元素都映射到键 a，缺少重复键处理策略。",
+      "pitfall": "合并函数参数顺序对应已有值与新值。",
+      "takeaway": "设计 Map 汇总前先确认键是否唯一。"
+    },
+    "chapter": "Stream",
+    "point": "聚合、去重与排序"
+  },
+  {
+    "id": "J03-056",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "怎样让这个无初始值求和在空流时也返回 0？",
+    "code": "int total = values.stream().mapToInt(Integer::intValue).reduce((a, b) -> a + b).getAsInt();",
+    "languageVersion": 21,
+    "answer": "使用 `sum()`，或给 reduce 提供 identity：`.reduce(0, Integer::sum)`。",
+    "explanation": {
+      "reasoning": "空流的无初始值 reduce 返回空 OptionalInt，直接取值会抛异常。",
+      "pitfall": "在访问 Optional 前处理空值路径。",
+      "takeaway": "存在自然单位元时，用带 identity 的归约表达空输入结果。"
+    },
+    "chapter": "Stream",
+    "point": "聚合、去重与排序"
+  },
+  {
+    "id": "J03-057",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "一个普通函数式接口最多可以有几个抽象方法？",
+    "options": [
+      {
+        "id": "A",
+        "text": "一个；Object 的公共方法签名不计为额外抽象方法。"
+      },
+      {
+        "id": "B",
+        "text": "任意多个，只要有 default 方法。"
+      },
+      {
+        "id": "C",
+        "text": "必须为零个。"
+      },
+      {
+        "id": "D",
+        "text": "必须正好两个。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "函数式接口只有一个函数描述符，可通过 @FunctionalInterface 请求编译器检查。",
+      "pitfall": "它仍可以有 default、static 或 Object 方法签名。",
+      "takeaway": "把单一行为契约交给 lambda 表达。"
+    },
+    "chapter": "泛型",
+    "point": "函数式接口与 Optional",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-058",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "`Optional.map(f)` 中 f 返回 null 时通常怎样处理？",
+    "options": [
+      {
+        "id": "A",
+        "text": "结果成为 Optional.empty()。"
+      },
+      {
+        "id": "B",
+        "text": "Optional 直接保存 null。"
+      },
+      {
+        "id": "C",
+        "text": "抛出 NullPointerException。"
+      },
+      {
+        "id": "D",
+        "text": "自动创建空字符串。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "若 Optional 有值，map 会将映射结果包装；结果为 null 时转为空 Optional。",
+      "pitfall": "Optional 本身不允许表示“有值且为 null”。",
+      "takeaway": "对返回 Optional 的函数使用 flatMap 避免嵌套。"
+    },
+    "chapter": "泛型",
+    "point": "函数式接口与 Optional",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-059",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "关于 Optional，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "`orElse` 的参数表达式会先被求值。"
+      },
+      {
+        "id": "B",
+        "text": "`orElseGet` 可在值缺失时延迟调用 supplier。"
+      },
+      {
+        "id": "C",
+        "text": "`Optional.of(null)` 返回 empty。"
+      },
+      {
+        "id": "D",
+        "text": "`Optional.ofNullable(null)` 返回 empty。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "orElse 会预先计算参数；orElseGet 按需调用；ofNullable 可接收 null。",
+      "pitfall": "Optional.of(null) 会抛 NullPointerException。",
+      "takeaway": "默认值计算昂贵或有副作用时使用 orElseGet。"
+    },
+    "chapter": "泛型",
+    "point": "函数式接口与 Optional",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-060",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "关于 lambda，哪些描述正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "lambda 需要目标函数式接口类型。"
+      },
+      {
+        "id": "B",
+        "text": "lambda 读取的局部变量需为 final 或 effectively final。"
+      },
+      {
+        "id": "C",
+        "text": "lambda 总是创建一个新线程。"
+      },
+      {
+        "id": "D",
+        "text": "方法引用可简写某些直接转发参数的 lambda。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "lambda 通过目标类型确定函数签名，捕获局部变量要求不再重新赋值。",
+      "pitfall": "lambda 描述行为，不会自动启动线程。",
+      "takeaway": "区分行为对象、执行线程和执行时机。"
+    },
+    "chapter": "泛型",
+    "point": "函数式接口与 Optional",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-061",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "输出什么？",
+    "code": "java.util.Optional<String> name = java.util.Optional.of(\"Ada\");\nSystem.out.println(name.map(String::toUpperCase).orElse(\"N/A\"));",
+    "languageVersion": 21,
+    "answer": "ADA",
+    "explanation": {
+      "reasoning": "Optional 有值时执行 map，将字符串转换为大写；orElse 返回该值。",
+      "pitfall": "map 不会修改原字符串。",
+      "takeaway": "使用 Optional 管理可缺失值时保持链式转换明确。"
+    },
+    "chapter": "泛型",
+    "point": "函数式接口与 Optional"
+  },
+  {
+    "id": "J03-062",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "supplier 会执行几次？",
+    "code": "int value = java.util.Optional.of(7).orElseGet(() -> { System.out.println(\"fallback\"); return 0; });\nSystem.out.println(value);",
+    "languageVersion": 21,
+    "answer": "7",
+    "explanation": {
+      "reasoning": "Optional 已有值，因此 supplier 不执行，只输出 7。",
+      "pitfall": "orElseGet 的 supplier 仅在空 Optional 时调用。",
+      "takeaway": "懒加载默认值时可用 orElseGet。"
+    },
+    "chapter": "泛型",
+    "point": "函数式接口与 Optional"
+  },
+  {
+    "id": "J03-063",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么捕获的 count 无法编译？",
+    "code": "int count = 0;\nRunnable task = () -> System.out.println(count);\ncount++;",
+    "languageVersion": 21,
+    "answer": "移除后续对 count 的重新赋值，或先把值复制到一个不会再变更的局部变量。",
+    "explanation": {
+      "reasoning": "被 lambda 捕获的局部变量必须 final 或 effectively final。",
+      "pitfall": "局部变量捕获并不会自动形成可变闭包单元。",
+      "takeaway": "把需要共享的可变状态放到明确的对象或并发容器中。"
+    },
+    "chapter": "泛型",
+    "point": "函数式接口与 Optional"
+  },
+  {
+    "id": "J03-064",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么 Optional.of 这一行抛出异常？应按可空输入怎样包装？",
+    "code": "String value = null;\nvar wrapped = java.util.Optional.of(value);",
+    "languageVersion": 21,
+    "answer": "将 `of` 改为 `Optional.ofNullable(value)`。",
+    "explanation": {
+      "reasoning": "Optional.of 要求参数非 null。",
+      "pitfall": "若 null 表示程序错误，of 的异常也可能是有意校验。",
+      "takeaway": "明确区分禁止 null 和允许缺失两种契约。"
+    },
+    "chapter": "泛型",
+    "point": "函数式接口与 Optional"
+  },
+  {
+    "id": "J03-065",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "Comparator 的 `compare(a, b)` 返回负数通常意味着什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "a 在排序顺序中排在 b 前面。"
+      },
+      {
+        "id": "B",
+        "text": "a 与 b 必须是同一对象。"
+      },
+      {
+        "id": "C",
+        "text": "a 必须为空。"
+      },
+      {
+        "id": "D",
+        "text": "比较结果只允许是 -1、0、1。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "Comparator 只规定负、零、正的意义，不要求返回值恰为 -1、0、1。",
+      "pitfall": "比较器应满足一致性与传递性。",
+      "takeaway": "将排序关系读成负、零、正，而不是精确数字。"
+    },
+    "chapter": "集合",
+    "point": "Comparator 与有序数据",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-066",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "要按分数降序、同分时按姓名升序，通常怎样组合比较器？",
+    "options": [
+      {
+        "id": "A",
+        "text": "先比较分数的降序比较器，再 thenComparing 姓名升序。"
+      },
+      {
+        "id": "B",
+        "text": "先按姓名降序，再按分数升序。"
+      },
+      {
+        "id": "C",
+        "text": "把两个比较器用逻辑或连接。"
+      },
+      {
+        "id": "D",
+        "text": "对分数调用 hashCode 排序。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "主键排序为 score reversed，随后以姓名升序作为次级键。",
+      "pitfall": "反转整个组合与只反转主比较器可能得到不同顺序。",
+      "takeaway": "先明确主排序方向，再追加稳定的次级比较键。"
+    },
+    "chapter": "集合",
+    "point": "Comparator 与有序数据",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-067",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "构造 Comparator 时哪些做法合理？",
+    "options": [
+      {
+        "id": "A",
+        "text": "`Comparator.comparing(Person::name)` 按名称比较。"
+      },
+      {
+        "id": "B",
+        "text": "`thenComparingInt(Person::age)` 添加整数次级排序。"
+      },
+      {
+        "id": "C",
+        "text": "用 `a.age - b.age` 比较可能发生整数溢出。"
+      },
+      {
+        "id": "D",
+        "text": "Comparator 必须修改被排序对象才能排序。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "comparing 与 thenComparing 组合键；减法比较可能溢出，应改用 Integer.compare。",
+      "pitfall": "排序比较器通常只描述次序，不应修改对象。",
+      "takeaway": "使用 compare / comparing API 避免减法溢出。"
+    },
+    "chapter": "集合",
+    "point": "Comparator 与有序数据",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-068",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "关于排序，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "List.sort 可原地排序列表。"
+      },
+      {
+        "id": "B",
+        "text": "Stream.sorted 生成排序后的流结果，不会原地重排源 List。"
+      },
+      {
+        "id": "C",
+        "text": "比较器若对不等价关系自相矛盾，排序可能失败或结果不可靠。"
+      },
+      {
+        "id": "D",
+        "text": "HashMap 的 keySet 天然按键排序。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "List.sort 修改列表顺序；Stream.sorted 处理流水线；比较器应维持传递一致性。",
+      "pitfall": "HashMap 不提供排序保证。",
+      "takeaway": "排序契约是比较函数需要遵循的逻辑，而非仅提供任意数字。"
+    },
+    "chapter": "集合",
+    "point": "Comparator 与有序数据",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-069",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "排序后的数字列表是什么？",
+    "code": "var values = new java.util.ArrayList<>(java.util.List.of(9, 2, 5));\nvalues.sort(java.util.Comparator.naturalOrder());\nSystem.out.println(values);",
+    "languageVersion": 21,
+    "answer": "[2, 5, 9]",
+    "explanation": {
+      "reasoning": "naturalOrder 按整数自然升序排列列表本身。",
+      "pitfall": "List.sort 会修改这个列表。",
+      "takeaway": "需要保留原顺序时先复制或用 Stream.sorted。"
+    },
+    "chapter": "集合",
+    "point": "Comparator 与有序数据"
+  },
+  {
+    "id": "J03-070",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "下面姓名的排序顺序是什么？",
+    "code": "var names = java.util.List.of(\"Bob\", \"Al\", \"Eve\").stream()\n    .sorted(java.util.Comparator.comparingInt(String::length).thenComparing(java.util.Comparator.naturalOrder())).toList();\nSystem.out.println(names);",
+    "languageVersion": 21,
+    "answer": "[Al, Bob, Eve]",
+    "explanation": {
+      "reasoning": "先按长度升序，再对同长度姓名按自然字母顺序比较。",
+      "pitfall": "次级比较器只在主要键相等时生效。",
+      "takeaway": "复合排序时明确每一级键的顺序与方向。"
+    },
+    "chapter": "集合",
+    "point": "Comparator 与有序数据"
+  },
+  {
+    "id": "J03-071",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "如何避免年龄相减导致的比较溢出？",
+    "code": "people.sort((a, b) -> a.age - b.age);",
+    "languageVersion": 21,
+    "answer": "改为 `people.sort(Comparator.comparingInt(Person::age))` 或 `Integer.compare(a.age, b.age)`。",
+    "explanation": {
+      "reasoning": "当年龄值接近 int 极值时，减法可能溢出并破坏排序关系。",
+      "pitfall": "错误比较器可能违反传递性并造成不可预测排序。",
+      "takeaway": "不要用相减作为通用数值比较。"
+    },
+    "chapter": "集合",
+    "point": "Comparator 与有序数据"
+  },
+  {
+    "id": "J03-072",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么姓名相同时无法按年龄排列？怎样加入第二排序键？",
+    "code": "people.sort(java.util.Comparator.comparing(Person::name));",
+    "languageVersion": 21,
+    "answer": "追加 `.thenComparingInt(Person::age)`。",
+    "explanation": {
+      "reasoning": "现有比较器只看 name，同名对象比较结果为 0。",
+      "pitfall": "排序稳定时同键元素会维持原相对顺序，但这不等于按年龄排序。",
+      "takeaway": "将每个业务排序条件都写入比较器组合。"
+    },
+    "chapter": "集合",
+    "point": "Comparator 与有序数据"
+  },
+  {
+    "id": "J03-073",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "读取文本文件时显式指定 UTF-8 的好处是什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "避免依赖运行环境默认字符集，跨环境解释一致。"
+      },
+      {
+        "id": "B",
+        "text": "让所有文件都变成二进制格式。"
+      },
+      {
+        "id": "C",
+        "text": "自动去除文件中的换行。"
+      },
+      {
+        "id": "D",
+        "text": "保证文件一定存在。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "明确字符集使字节到字符的解码规则稳定。",
+      "pitfall": "编码选择不能替代文件存在性与权限检查。",
+      "takeaway": "文本 IO 在边界处明确指定 charset。"
+    },
+    "chapter": "IO",
+    "point": "文件路径与字符编码",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-074",
+    "stage": "advanced",
+    "type": "single",
+    "stem": "`Path.resolve(\"child.txt\")` 通常用于什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "在路径对象基础上解析一个子路径。"
+      },
+      {
+        "id": "B",
+        "text": "马上读取文件所有内容。"
+      },
+      {
+        "id": "C",
+        "text": "删除目标目录。"
+      },
+      {
+        "id": "D",
+        "text": "检查用户是否有写权限。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "resolve 组合路径片段并返回 Path，不执行文件读写。",
+      "pitfall": "路径拼接与 IO 操作是分离步骤。",
+      "takeaway": "构造 Path 后仍需检查或调用相应文件 API。"
+    },
+    "chapter": "IO",
+    "point": "文件路径与字符编码",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-075",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "关于 Files 的文本 API，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "`Files.readString(path, UTF_8)` 返回文件全部文本。"
+      },
+      {
+        "id": "B",
+        "text": "`Files.writeString` 可将文本写入路径。"
+      },
+      {
+        "id": "C",
+        "text": "文件不存在时 readString 会返回空字符串。"
+      },
+      {
+        "id": "D",
+        "text": "文件 IO 可能抛出 IOException。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "readString / writeString 是文本便利 API，读取失败会以 IO 异常报告。",
+      "pitfall": "不存在与空文件是两种不同状态。",
+      "takeaway": "调用处应声明或处理受检 IO 异常。"
+    },
+    "chapter": "IO",
+    "point": "文件路径与字符编码",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-076",
+    "stage": "advanced",
+    "type": "multiple",
+    "stem": "关于 Path 与文件操作，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "Path 本身是路径表示，不一定对应存在的文件。"
+      },
+      {
+        "id": "B",
+        "text": "`Files.exists(path)` 可检查路径当前是否存在，但结果会随时间变化。"
+      },
+      {
+        "id": "C",
+        "text": "`resolve` 总会规范化并消除所有 `..`。"
+      },
+      {
+        "id": "D",
+        "text": "使用 try-with-resources 管理打开的 Reader。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "Path 只描述位置；exists 是瞬时检查，打开 reader 后需关闭资源。",
+      "pitfall": "文件系统在检查和使用之间可能变化；resolve 也不保证执行规范化。",
+      "takeaway": "用实际 IO 操作处理竞态，并妥善管理资源。"
+    },
+    "chapter": "IO",
+    "point": "文件路径与字符编码",
+    "difficulty": "巩固"
+  },
+  {
+    "id": "J03-077",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "UTF-8 编码后这个字符占多少字节？",
+    "code": "byte[] bytes = \"猫\".getBytes(java.nio.charset.StandardCharsets.UTF_8);\nSystem.out.println(bytes.length);",
+    "languageVersion": 21,
+    "answer": "3",
+    "explanation": {
+      "reasoning": "猫的 UTF-8 编码由三个字节组成。",
+      "pitfall": "String.length 计算 UTF-16 代码单元数，与编码后的字节数不同。",
+      "takeaway": "网络与文件长度应根据具体字符编码计算。"
+    },
+    "chapter": "IO",
+    "point": "文件路径与字符编码"
+  },
+  {
+    "id": "J03-078",
+    "stage": "advanced",
+    "type": "output",
+    "difficulty": "巩固",
+    "stem": "这个路径的文件名部分是什么？",
+    "code": "var path = java.nio.file.Path.of(\"data\").resolve(\"users.csv\");\nSystem.out.println(path.getFileName());",
+    "languageVersion": 21,
+    "answer": "users.csv",
+    "explanation": {
+      "reasoning": "resolve 组合父路径和子路径，getFileName 返回最后一个路径部分。",
+      "pitfall": "Path 的展示分隔符因平台不同；文件名部分不变。",
+      "takeaway": "用 Path 的结构化方法查询路径片段。"
+    },
+    "chapter": "IO",
+    "point": "文件路径与字符编码"
+  },
+  {
+    "id": "J03-079",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "为什么这个代码在文件不存在时没有拿到空文本？",
+    "code": "String text = java.nio.file.Files.readString(java.nio.file.Path.of(\"missing.txt\"));",
+    "languageVersion": 21,
+    "answer": "捕获或声明 IOException，并根据业务需求创建文件、返回缺失状态或提示用户。",
+    "explanation": {
+      "reasoning": "readString 对不存在的路径抛出 IOException 子类，不会自动返回空字符串。",
+      "pitfall": "不要把“缺失”误当成“内容长度为零”。",
+      "takeaway": "让文件缺失成为显式、可处理的业务结果。"
+    },
+    "chapter": "IO",
+    "point": "文件路径与字符编码"
+  },
+  {
+    "id": "J03-080",
+    "stage": "advanced",
+    "type": "debug",
+    "difficulty": "巩固",
+    "stem": "怎样避免 Writer 在异常路径上泄漏？",
+    "code": "var writer = java.nio.file.Files.newBufferedWriter(path);\nwriter.write(text);",
+    "languageVersion": 21,
+    "answer": "用 `try (var writer = Files.newBufferedWriter(path)) { writer.write(text); }`。",
+    "explanation": {
+      "reasoning": "当前代码没有关闭 writer；缓冲内容或文件描述符可能无法及时释放。",
+      "pitfall": "close 也可能抛出 IOException，因此应纳入结构化清理。",
+      "takeaway": "用 try-with-resources 管理 AutoCloseable IO 资源。"
+    },
+    "chapter": "IO",
+    "point": "文件路径与字符编码"
+  }
+]

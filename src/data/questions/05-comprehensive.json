@@ -1,0 +1,750 @@
+[
+  {
+    "id": "J05-001",
+    "stage": "comprehensive",
+    "chapter": "数值计算",
+    "point": "整数溢出与赋值转换",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "long 变量最终会保存并输出什么值？",
+    "code": "long total = 2_000_000_000 + 2_000_000_000;\nSystem.out.println(total);",
+    "languageVersion": 21,
+    "answer": "-294967296",
+    "explanation": {
+      "reasoning": "两个字面量都在 int 范围内，先以 int 完成加法并发生溢出，再把溢出结果转成 long。若要用 long 运算，应把至少一个操作数写成 long，例如 2_000_000_000L。",
+      "pitfall": "左侧变量是 long，不会反向改变右侧表达式已经选定的运算类型。",
+      "takeaway": "在表达式操作数处提升类型，避免中间计算先溢出。"
+    }
+  },
+  {
+    "id": "J05-002",
+    "stage": "comprehensive",
+    "chapter": "IO",
+    "point": "流资源生命周期",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "使用 Files.lines 读取文件时，这段代码缺少什么？如何保证资源释放？",
+    "code": "Files.lines(path)\n    .filter(line -> !line.isBlank())\n    .forEach(System.out::println);",
+    "languageVersion": 21,
+    "answer": "Files.lines 返回的 Stream 持有文件资源，需要关闭。将其放入 try-with-resources：try (Stream<String> lines = Files.lines(path)) { ... }。",
+    "explanation": {
+      "reasoning": "终端操作完成只会消费 Stream，不保证关闭底层文件资源。try-with-resources 会在作用域结束时调用 close。",
+      "pitfall": "并非所有 Stream 都持有资源，但 Files.lines 明确需要关闭。",
+      "takeaway": "对文件、网络等资源型 Stream 使用 try-with-resources。"
+    }
+  },
+  {
+    "id": "J05-003",
+    "stage": "comprehensive",
+    "chapter": "算法思路",
+    "point": "二分查找边界",
+    "type": "single",
+    "difficulty": "综合",
+    "stem": "为避免 low + high 在极大数组下溢出，哪种中点写法更稳妥？",
+    "options": [
+      {
+        "id": "A",
+        "text": "int mid = (low + high) / 2;"
+      },
+      {
+        "id": "B",
+        "text": "int mid = low + (high - low) / 2;"
+      },
+      {
+        "id": "C",
+        "text": "int mid = high - low / 2;"
+      },
+      {
+        "id": "D",
+        "text": "int mid = low * high / 2;"
+      }
+    ],
+    "answer": "B",
+    "explanation": {
+      "reasoning": "当 low 与 high 都很大时，相加可能超过 int 上限。low + (high - low) / 2 在 low 不大于 high 的常见区间不需要直接把两个大索引相加。",
+      "optionAnalysis": {
+        "A": "可能在加法阶段溢出。",
+        "B": "正确：先取区间差的一半，再加回 low。",
+        "C": "运算优先级和公式都不代表中点。",
+        "D": "乘法更容易溢出，也不是中点公式。"
+      },
+      "pitfall": "即便数组长度受限，通用算法也应避免不必要的中间溢出。",
+      "takeaway": "二分查找常用 low + (high - low) / 2 计算中点。"
+    }
+  },
+  {
+    "id": "J05-004",
+    "stage": "comprehensive",
+    "type": "single",
+    "stem": "汇总订单金额时，金额字段与数量相乘后再累计，优先选择什么类型存放总额？",
+    "options": [
+      {
+        "id": "A",
+        "text": "long，并在乘法前保证至少一个操作数按 long 运算。"
+      },
+      {
+        "id": "B",
+        "text": "byte，因为单个订单通常较小。"
+      },
+      {
+        "id": "C",
+        "text": "boolean，因为只需要判断是否有金额。"
+      },
+      {
+        "id": "D",
+        "text": "char，因为金额是非负整数。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "多个订单金额相加可能超过 int；若乘法先以 int 发生溢出，之后转 long 也无法恢复。",
+      "pitfall": "扩大总额变量不一定改变右侧中间表达式的类型。",
+      "takeaway": "从乘法操作数开始使用 long，并检查金额单位与溢出边界。"
+    },
+    "chapter": "综合应用",
+    "point": "订单汇总与集合建模",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J05-005",
+    "stage": "comprehensive",
+    "type": "single",
+    "stem": "按商品 SKU 累计订单行数量，哪种结构最直接？",
+    "options": [
+      {
+        "id": "A",
+        "text": "Map<String, Long>，SKU 作键、累计数量作值。"
+      },
+      {
+        "id": "B",
+        "text": "Set<Long>，只保存所有行数。"
+      },
+      {
+        "id": "C",
+        "text": "Stack<String>，把 SKU 当作调用栈。"
+      },
+      {
+        "id": "D",
+        "text": "用数组下标直接当 SKU 字符串。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "Map 将业务键映射到累计值，适合计数与汇总。",
+      "pitfall": "若使用 Integer 汇总，也要评估总量是否可能超过范围。",
+      "takeaway": "根据访问方式选用最合适的数据结构。"
+    },
+    "chapter": "综合应用",
+    "point": "订单汇总与集合建模",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J05-006",
+    "stage": "comprehensive",
+    "type": "multiple",
+    "stem": "实现可靠订单汇总时，哪些做法有帮助？",
+    "options": [
+      {
+        "id": "A",
+        "text": "为金额、数量和总额选择足够宽的数值类型。"
+      },
+      {
+        "id": "B",
+        "text": "用不可变订单记录表达已校验的订单行。"
+      },
+      {
+        "id": "C",
+        "text": "对每一行无条件吞掉解析异常并继续，不记录错误。"
+      },
+      {
+        "id": "D",
+        "text": "对重复 SKU 使用 merge 或明确的累加逻辑。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "可靠汇总需要范围适当的类型、清楚的数据模型和重复键聚合策略。",
+      "pitfall": "吞异常会让部分失败被误认为成功汇总。",
+      "takeaway": "输入校验与聚合逻辑都应保留可解释的失败信息。"
+    },
+    "chapter": "综合应用",
+    "point": "订单汇总与集合建模",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J05-007",
+    "stage": "comprehensive",
+    "type": "multiple",
+    "stem": "关于汇总管道，哪些检查可减少结果错误？",
+    "options": [
+      {
+        "id": "A",
+        "text": "确认空输入时的返回值。"
+      },
+      {
+        "id": "B",
+        "text": "检查重复键由覆盖、求和还是拒绝处理。"
+      },
+      {
+        "id": "C",
+        "text": "确认金额舍入规则与币种精度。"
+      },
+      {
+        "id": "D",
+        "text": "依赖 HashMap 的迭代顺序生成报表。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "空输入、冲突键和货币精度都是汇总的业务规则。",
+      "pitfall": "HashMap 没有排序承诺。",
+      "takeaway": "把报表顺序作为显式排序步骤。"
+    },
+    "chapter": "综合应用",
+    "point": "订单汇总与集合建模",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J05-008",
+    "stage": "comprehensive",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "SKU A 汇总数量是多少？",
+    "code": "record Line(String sku, int quantity) {}\nvar lines = java.util.List.of(new Line(\"A\", 2), new Line(\"B\", 3), new Line(\"A\", 4));\nvar totals = new java.util.HashMap<String, Integer>();\nfor (var line : lines) totals.merge(line.sku(), line.quantity(), Integer::sum);\nSystem.out.println(totals.get(\"A\"));",
+    "languageVersion": 21,
+    "answer": "6",
+    "explanation": {
+      "reasoning": "SKU A 的数量由两行组成，merge 将 2 与 4 累加。",
+      "pitfall": "相同 SKU 是同一个 Map 键，需要累计而不是覆盖。",
+      "takeaway": "将重复键策略编码进 merge 函数。"
+    },
+    "chapter": "综合应用",
+    "point": "订单汇总与集合建模"
+  },
+  {
+    "id": "J05-009",
+    "stage": "comprehensive",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "这份报表按 SKU 字母序输出什么？",
+    "code": "var totals = new java.util.TreeMap<String, Integer>();\ntotals.put(\"B\", 5); totals.put(\"A\", 6);\nSystem.out.println(totals);",
+    "languageVersion": 21,
+    "answer": "{A=6, B=5}",
+    "explanation": {
+      "reasoning": "TreeMap 按键自然字典序遍历，A 排在 B 前面。",
+      "pitfall": "排序由 Map 类型决定，不取决于 put 顺序。",
+      "takeaway": "输出顺序需要稳定时选择有序结构或显式排序。"
+    },
+    "chapter": "综合应用",
+    "point": "订单汇总与集合建模"
+  },
+  {
+    "id": "J05-010",
+    "stage": "comprehensive",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "long total 的最终值是多少？",
+    "code": "long total = 0;\nint price = 1_500_000_000;\nint quantity = 2;\ntotal += (long) price * quantity;\nSystem.out.println(total);",
+    "languageVersion": 21,
+    "answer": "3000000000",
+    "explanation": {
+      "reasoning": "把 price 在乘法前转换为 long，因此乘法以 long 执行，结果为 3000000000。",
+      "pitfall": "若写成 `(long) (price * quantity)`，int 乘法会先溢出。",
+      "takeaway": "溢出保护要放在计算发生之前。"
+    },
+    "chapter": "综合应用",
+    "point": "订单汇总与集合建模"
+  },
+  {
+    "id": "J05-011",
+    "stage": "comprehensive",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "为什么汇总金额会在转换成 long 后仍是负数？",
+    "code": "long total = 0;\nint price = 1_500_000_000;\nint quantity = 2;\ntotal += price * quantity;",
+    "languageVersion": 21,
+    "answer": "改为 `total += (long) price * quantity;`，使乘法本身以 long 执行。",
+    "explanation": {
+      "reasoning": "price * quantity 先以 int 计算并溢出，再扩大为 long。",
+      "pitfall": "左侧 long 目标不会反向扩大右侧表达式。",
+      "takeaway": "在易溢出的中间计算开始前提升操作数类型。"
+    },
+    "chapter": "综合应用",
+    "point": "订单汇总与集合建模"
+  },
+  {
+    "id": "J05-012",
+    "stage": "comprehensive",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "为什么重复 SKU 没有累加？怎样保留之前的数量？",
+    "code": "totals.put(line.sku(), line.quantity());",
+    "languageVersion": 21,
+    "answer": "使用 `totals.merge(line.sku(), line.quantity(), Integer::sum)`，或读取旧值后显式相加。",
+    "explanation": {
+      "reasoning": "put 会直接覆盖该键当前值。",
+      "pitfall": "Map 的键唯一，累加需要业务明确的合并函数。",
+      "takeaway": "先定义重复记录策略，再选择 put 或 merge。"
+    },
+    "chapter": "综合应用",
+    "point": "订单汇总与集合建模"
+  },
+  {
+    "id": "J05-013",
+    "stage": "comprehensive",
+    "type": "single",
+    "stem": "对已排序数组做二分查找，典型时间复杂度是多少？",
+    "options": [
+      {
+        "id": "A",
+        "text": "O(log n)。"
+      },
+      {
+        "id": "B",
+        "text": "O(n²)。"
+      },
+      {
+        "id": "C",
+        "text": "O(1) 对任意数组都成立。"
+      },
+      {
+        "id": "D",
+        "text": "O(n log n) 每次查找。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "每轮将候选范围缩小约一半，比较次数随 log₂ n 增长。",
+      "pitfall": "二分查找依赖输入按相同比较规则有序。",
+      "takeaway": "先检查排序前提，再使用二分查找。"
+    },
+    "chapter": "算法思路",
+    "point": "复杂度与边界条件",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J05-014",
+    "stage": "comprehensive",
+    "type": "single",
+    "stem": "对空数组执行下标遍历时，最安全的循环条件通常是什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "`i < values.length`。"
+      },
+      {
+        "id": "B",
+        "text": "`i <= values.length`。"
+      },
+      {
+        "id": "C",
+        "text": "`i == values.length`。"
+      },
+      {
+        "id": "D",
+        "text": "`i > 0`。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "长度为 0 时，i 从 0 开始即不满足 i < length，因此循环体不会执行。",
+      "pitfall": "`<=` 会在非空数组末尾访问下标 length。",
+      "takeaway": "用左闭右开的区间表达遍历边界。"
+    },
+    "chapter": "算法思路",
+    "point": "复杂度与边界条件",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J05-015",
+    "stage": "comprehensive",
+    "type": "multiple",
+    "stem": "设计二分查找时，哪些约定要保持一致？",
+    "options": [
+      {
+        "id": "A",
+        "text": "区间端点是否包含。"
+      },
+      {
+        "id": "B",
+        "text": "mid 计算及左右边界更新规则。"
+      },
+      {
+        "id": "C",
+        "text": "数组比较顺序与排序时采用的规则。"
+      },
+      {
+        "id": "D",
+        "text": "找到元素后随意把 high 设为数组长度。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "闭区间或左闭右开区间都可行，但边界更新必须与约定配套。",
+      "pitfall": "不一致更新会造成漏检或死循环。",
+      "takeaway": "逐轮证明候选区间缩小且保留可能解。"
+    },
+    "chapter": "算法思路",
+    "point": "复杂度与边界条件",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J05-016",
+    "stage": "comprehensive",
+    "type": "multiple",
+    "stem": "关于算法复杂度，哪些说法正确？",
+    "options": [
+      {
+        "id": "A",
+        "text": "遍历 n 个元素一次通常是 O(n)。"
+      },
+      {
+        "id": "B",
+        "text": "两层各遍历 n 次的嵌套循环通常是 O(n²)。"
+      },
+      {
+        "id": "C",
+        "text": "常数因子会保留在大 O 表达式中。"
+      },
+      {
+        "id": "D",
+        "text": "每次把规模减半的循环通常是 O(log n)。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "大 O 描述渐进增长，忽略常数倍；循环次数可按规模关系估算。",
+      "pitfall": "输入分布、最坏情况或均摊口径需按题目说明。",
+      "takeaway": "从输入规模变化与操作次数关系推导复杂度。"
+    },
+    "chapter": "算法思路",
+    "point": "复杂度与边界条件",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J05-017",
+    "stage": "comprehensive",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "下面算法返回的下标是多少？",
+    "code": "int[] values = {1, 3, 5, 7, 9};\nint index = java.util.Arrays.binarySearch(values, 7);\nSystem.out.println(index);",
+    "languageVersion": 21,
+    "answer": "3",
+    "explanation": {
+      "reasoning": "数组升序且 7 位于下标 3，binarySearch 返回该下标。",
+      "pitfall": "元素不存在时返回值是负编码，不是普通的 -1。",
+      "takeaway": "理解具体搜索 API 的未命中返回契约。"
+    },
+    "chapter": "算法思路",
+    "point": "复杂度与边界条件"
+  },
+  {
+    "id": "J05-018",
+    "stage": "comprehensive",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "循环后 sum 是多少？",
+    "code": "int[] values = {2, 2, 3};\nint sum = 0;\nfor (int value : values) sum += value;\nSystem.out.println(sum);",
+    "languageVersion": 21,
+    "answer": "7",
+    "explanation": {
+      "reasoning": "对数组三个元素逐个累计，2 + 2 + 3 = 7。",
+      "pitfall": "求和保留重复元素，不等同于 Set 去重后求和。",
+      "takeaway": "先确认题目要求的是逐项累计还是按键去重。"
+    },
+    "chapter": "算法思路",
+    "point": "复杂度与边界条件"
+  },
+  {
+    "id": "J05-019",
+    "stage": "comprehensive",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "该实现返回的最大值是多少？",
+    "code": "int[] values = {-4, -2, -9};\nint best = values[0];\nfor (int value : values) if (value > best) best = value;\nSystem.out.println(best);",
+    "languageVersion": 21,
+    "answer": "-2",
+    "explanation": {
+      "reasoning": "best 从数组中的真实元素 -4 初始化，遍历后更新为 -2。",
+      "pitfall": "最大值初始为 0 会错误处理全负数输入。",
+      "takeaway": "使用首元素作初值，或明确处理空集合。"
+    },
+    "chapter": "算法思路",
+    "point": "复杂度与边界条件"
+  },
+  {
+    "id": "J05-020",
+    "stage": "comprehensive",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "为什么数组包含重复值时结果计数不正确？",
+    "code": "int distinct = 0;\nfor (int i = 0; i < values.length; i++) distinct++;",
+    "languageVersion": 21,
+    "answer": "使用 Set 存放已见元素并返回其大小，或在排序后只统计与前一项不同的值。",
+    "explanation": {
+      "reasoning": "现有循环统计的是元素个数，重复元素也各计一次。",
+      "pitfall": "区分输入项计数与不同值计数。",
+      "takeaway": "先把需求定义成唯一元素数，再选择去重策略。"
+    },
+    "chapter": "算法思路",
+    "point": "复杂度与边界条件"
+  },
+  {
+    "id": "J05-021",
+    "stage": "comprehensive",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "为什么对空数组读取 values[0] 会失败？",
+    "code": "int max = values[0];",
+    "languageVersion": 21,
+    "answer": "先检查数组非空；为空时返回 OptionalInt.empty、抛出明确异常或采用业务定义的默认结果。",
+    "explanation": {
+      "reasoning": "长度为 0 时不存在下标 0。",
+      "pitfall": "最大值问题对空输入需要显式定义语义。",
+      "takeaway": "数组访问前验证边界条件。"
+    },
+    "chapter": "算法思路",
+    "point": "复杂度与边界条件"
+  },
+  {
+    "id": "J05-022",
+    "stage": "comprehensive",
+    "type": "single",
+    "stem": "服务层捕获异常后，最不利于排错的做法是什么？",
+    "options": [
+      {
+        "id": "A",
+        "text": "吞掉异常并返回看似成功的默认值，不记录原因。"
+      },
+      {
+        "id": "B",
+        "text": "添加上下文后保留 cause 再抛出。"
+      },
+      {
+        "id": "C",
+        "text": "把可恢复的输入错误转换为明确业务结果。"
+      },
+      {
+        "id": "D",
+        "text": "在边界处记录一次失败并向调用方反馈。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "静默吞异常会把失败伪装成正常结果，让调用方无法判断数据是否完整。",
+      "pitfall": "异常处理要么恢复，要么转换并保留因果信息。",
+      "takeaway": "让失败状态与成功结果在接口上可区分。"
+    },
+    "chapter": "综合应用",
+    "point": "异常处理与服务边界",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J05-023",
+    "stage": "comprehensive",
+    "type": "single",
+    "stem": "当方法需要返回“有值或没有值”，且缺失是正常业务状态时，哪种结果表达更清晰？",
+    "options": [
+      {
+        "id": "A",
+        "text": "Optional<T> 或显式结果类型。"
+      },
+      {
+        "id": "B",
+        "text": "返回 null 且不写文档。"
+      },
+      {
+        "id": "C",
+        "text": "返回任意特殊负数作为所有类型的缺失值。"
+      },
+      {
+        "id": "D",
+        "text": "捕获所有异常后返回对象的 toString。"
+      }
+    ],
+    "answer": "A",
+    "explanation": {
+      "reasoning": "显式结果类型让调用方处理缺失分支。",
+      "pitfall": "null 可用但需要稳定的契约与防护。",
+      "takeaway": "将正常缺失和异常失败区分开。"
+    },
+    "chapter": "综合应用",
+    "point": "异常处理与服务边界",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J05-024",
+    "stage": "comprehensive",
+    "type": "multiple",
+    "stem": "生产级文件导入流程中，哪些做法有助于数据可靠？",
+    "options": [
+      {
+        "id": "A",
+        "text": "显式指定字符集。"
+      },
+      {
+        "id": "B",
+        "text": "资源用 try-with-resources 关闭。"
+      },
+      {
+        "id": "C",
+        "text": "校验每条输入并报告行号。"
+      },
+      {
+        "id": "D",
+        "text": "遇到格式错误就静默跳过且仍报告全部导入成功。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": {
+      "reasoning": "编码、资源管理和逐条校验能让输入过程可重现且可诊断。",
+      "pitfall": "静默跳过会让结果与输入内容不一致。",
+      "takeaway": "定义失败时回滚、部分接受或报告错误的业务策略。"
+    },
+    "chapter": "综合应用",
+    "point": "异常处理与服务边界",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J05-025",
+    "stage": "comprehensive",
+    "type": "multiple",
+    "stem": "关于并发服务的共享状态，哪些设计较稳妥？",
+    "options": [
+      {
+        "id": "A",
+        "text": "使用线程安全的并发容器或在临界区同步。"
+      },
+      {
+        "id": "B",
+        "text": "明确对象的所有权与可变状态边界。"
+      },
+      {
+        "id": "C",
+        "text": "共享 ArrayList 的多线程 add 一定安全。"
+      },
+      {
+        "id": "D",
+        "text": "把读取、校验和更新不变量作为整体原子操作。"
+      }
+    ],
+    "answer": [
+      "A",
+      "B",
+      "D"
+    ],
+    "explanation": {
+      "reasoning": "安全共享需要线程安全容器、明确所有权，并保护跨字段不变量。",
+      "pitfall": "单个容器的线程安全也不自动使多步业务事务原子。",
+      "takeaway": "根据业务不变量的范围设计同步边界。"
+    },
+    "chapter": "综合应用",
+    "point": "异常处理与服务边界",
+    "difficulty": "综合"
+  },
+  {
+    "id": "J05-026",
+    "stage": "comprehensive",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "构造器验证失败后捕获的消息是什么？",
+    "code": "try {\n    java.util.Objects.requireNonNull(null, \"name\");\n} catch (NullPointerException ex) {\n    System.out.println(ex.getMessage());\n}",
+    "languageVersion": 21,
+    "answer": "name",
+    "explanation": {
+      "reasoning": "requireNonNull 收到 null 时抛 NullPointerException，并将 name 作为消息。",
+      "pitfall": "验证失败应在边界尽早显现。",
+      "takeaway": "给参数校验异常提供能定位字段的消息。"
+    },
+    "chapter": "综合应用",
+    "point": "异常处理与服务边界"
+  },
+  {
+    "id": "J05-027",
+    "stage": "comprehensive",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "关闭前后打印顺序是什么？",
+    "code": "var log = new StringBuilder();\ntry (var resource = new AutoCloseable() { public void close() { log.append(\"C\"); } }) { log.append(\"W\"); }\nSystem.out.println(log);",
+    "languageVersion": 21,
+    "answer": "WC",
+    "explanation": {
+      "reasoning": "try 主体追加 W，离开 try 时 close 追加 C。",
+      "pitfall": "资源关闭发生在控制流离开 try-with-resources 主体时。",
+      "takeaway": "把资源生命周期和主体操作放入同一结构。"
+    },
+    "chapter": "综合应用",
+    "point": "异常处理与服务边界"
+  },
+  {
+    "id": "J05-028",
+    "stage": "comprehensive",
+    "type": "output",
+    "difficulty": "综合",
+    "stem": "程序输出什么？",
+    "code": "var result = java.util.Optional.ofNullable(\"\")\n    .filter(s -> !s.isBlank()).orElse(\"fallback\");\nSystem.out.println(result);",
+    "languageVersion": 21,
+    "answer": "fallback",
+    "explanation": {
+      "reasoning": "Optional 有空字符串，但 filter 因其 blank 丢弃值，orElse 返回 fallback。",
+      "pitfall": "Optional.ofNullable 只检查 null，不会自动过滤空字符串。",
+      "takeaway": "把 null、空串和空白串策略分别写清楚。"
+    },
+    "chapter": "综合应用",
+    "point": "异常处理与服务边界"
+  },
+  {
+    "id": "J05-029",
+    "stage": "comprehensive",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "为什么 catch 之后调用方仍以为导入成功？怎样表达失败？",
+    "code": "try { importFile(path); } catch (IOException ignored) { }\nreturn ImportResult.success();",
+    "languageVersion": 21,
+    "answer": "在异常时返回失败结果或带错误详情的结果；必要时保留异常 cause 并记录上下文。",
+    "explanation": {
+      "reasoning": "异常被忽略后仍无条件返回 success，失败被伪装为成功。",
+      "pitfall": "不要用空 catch 隐藏数据导入失败。",
+      "takeaway": "让 API 的结果状态真实反映操作结果。"
+    },
+    "chapter": "综合应用",
+    "point": "异常处理与服务边界"
+  },
+  {
+    "id": "J05-030",
+    "stage": "comprehensive",
+    "type": "debug",
+    "difficulty": "综合",
+    "stem": "为什么这个共享计数在多线程下可能少于任务总数？",
+    "code": "class Stats { int completed; void done() { completed++; } }",
+    "languageVersion": 21,
+    "answer": "用 AtomicInteger.incrementAndGet，或把 done 方法同步并通过同步读取结果。",
+    "explanation": {
+      "reasoning": "普通 ++ 是读改写复合操作，多个线程可能覆盖彼此结果。",
+      "pitfall": "字段可见性与递增原子性需要分别满足。",
+      "takeaway": "把并发更新封装为原子操作。"
+    },
+    "chapter": "综合应用",
+    "point": "异常处理与服务边界"
+  }
+]
